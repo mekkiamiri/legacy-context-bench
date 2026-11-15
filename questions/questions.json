@@ -1,0 +1,422 @@
+{
+  "cible": {
+    "projet": "Apache Roller",
+    "depot": "https://github.com/apache/roller",
+    "commit": "52e064a0104c89e141100d22e5bc990899ba3c2f",
+    "version": "7.0.0"
+  },
+  "notation": "Chaque critère vaut 1 point s'il apparaît dans la réponse (un des mots-clés suffit, sans tenir compte de la casse). Score de la question = points / nombre de critères. Une relecture humaine confirme chaque score.",
+  "questions": [
+    {
+      "id": "S01",
+      "famille": "structure",
+      "question": "Quel fournisseur JPA Roller utilise-t-il réellement à l'exécution ?",
+      "reponse": "EclipseLink. Une dépendance Hibernate figure dans app/pom.xml, mais elle est en commentaire.",
+      "criteres": [
+        [
+          "eclipselink",
+          "eclipse.persistence"
+        ]
+      ],
+      "preuves": [
+        "app/pom.xml:133",
+        "app/pom.xml:158"
+      ],
+      "piege": "Une recherche naïve de « hibernate » dans le pom trouve une dépendance... commentée."
+    },
+    {
+      "id": "S02",
+      "famille": "structure",
+      "question": "Comment les entités JPA (par exemple WeblogEntry) sont-elles mappées sur la base : annotations ou autre chose ?",
+      "reponse": "Par des fichiers XML *.orm.xml déclarés dans persistence.xml, avec metadata-complete=\"true\" : les annotations éventuelles sont ignorées.",
+      "criteres": [
+        [
+          "orm.xml"
+        ],
+        [
+          "metadata-complete",
+          "xml"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/resources/org/apache/roller/weblogger/pojos/WeblogEntry.orm.xml:23",
+        "app/src/main/resources/META-INF/persistence.xml:38"
+      ],
+      "piege": "Un agent habitué à Spring Boot suppose des annotations @Entity."
+    },
+    {
+      "id": "S03",
+      "famille": "structure",
+      "question": "Quelles technologies servent à l'interface d'administration et au rendu public des blogs ?",
+      "reponse": "Struts 2 (actions *.rol, JSP et Tiles) pour l'administration ; templates Velocity rendus par des servlets (PageServlet, FeedServlet...) pour les blogs publics.",
+      "criteres": [
+        [
+          "struts"
+        ],
+        [
+          "velocity"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/webapp/WEB-INF/web.xml:38",
+        "app/src/main/java/org/apache/roller/weblogger/ui/rendering/servlets/PageServlet.java"
+      ]
+    },
+    {
+      "id": "S04",
+      "famille": "structure",
+      "question": "Comment une URL publique comme /monblog/entry/mon-billet arrive-t-elle jusqu'au code qui affiche la page ?",
+      "reponse": "Le filtre RequestMappingFilter (sur /*) passe l'URL au WeblogRequestMapper, qui la réécrit vers /roller-ui/rendering/page/*, servi par PageServlet.",
+      "criteres": [
+        [
+          "requestmappingfilter"
+        ],
+        [
+          "weblogrequestmapper"
+        ],
+        [
+          "pageservlet"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/webapp/WEB-INF/web.xml:75",
+        "app/src/main/resources/org/apache/roller/weblogger/config/roller.properties:448"
+      ]
+    },
+    {
+      "id": "S05",
+      "famille": "structure",
+      "question": "Quelles API permettent de publier sur un blog Roller sans passer par l'interface web ?",
+      "reponse": "XML-RPC (API Blogger et MetaWeblog) sur /roller-services/xmlrpc, et Atom Publishing Protocol sur /roller-services/app/*.",
+      "criteres": [
+        [
+          "xml-rpc",
+          "xmlrpc"
+        ],
+        [
+          "metaweblog",
+          "blogger"
+        ],
+        [
+          "atom"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/webapp/WEB-INF/web.xml:196",
+        "app/src/main/webapp/WEB-INF/web.xml:308"
+      ]
+    },
+    {
+      "id": "S06",
+      "famille": "structure",
+      "question": "Avec quoi la recherche plein texte est-elle faite ?",
+      "reponse": "Apache Lucene, derrière l'interface IndexManager (implémentation dans business/search/lucene, opérations d'indexation comme AddEntryOperation).",
+      "criteres": [
+        [
+          "lucene"
+        ],
+        [
+          "indexmanager"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/java/org/apache/roller/weblogger/business/search/IndexManager.java:30"
+      ]
+    },
+    {
+      "id": "S07",
+      "famille": "structure",
+      "question": "Roller contient un deuxième module fonctionnel en plus des blogs. Lequel, et comment reconnaît-on ses tables ?",
+      "reponse": "Planet, un agrégateur de flux (package org.apache.roller.planet). Ses tables commencent par rag_ (rag_planet, rag_group, rag_subscription, rag_entry...).",
+      "criteres": [
+        [
+          "planet"
+        ],
+        [
+          "rag_"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/resources/sql/createdb.vm:302"
+      ]
+    },
+    {
+      "id": "C01",
+      "famille": "comportement",
+      "question": "Comment Roller construit-il l'ancre (le bout d'URL) d'un nouveau billet intitulé « Mon Premier Billet Sur Roller Et Java » ?",
+      "reponse": "Il retire les caractères non alphanumériques, garde les 5 premiers mots en minuscules, séparés par des tirets : mon-premier-billet-sur-roller. Le commentaire du code dit « 4 mots », mais la boucle s'arrête à count < 5.",
+      "criteres": [
+        [
+          "mon-premier-billet-sur-roller",
+          "5 premiers mots",
+          "cinq premiers mots",
+          "5 mots",
+          "five"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/java/org/apache/roller/weblogger/pojos/WeblogEntry.java:820",
+        "app/src/main/java/org/apache/roller/weblogger/pojos/WeblogEntry.java:824",
+        "app/src/main/resources/org/apache/roller/weblogger/config/roller.properties:579"
+      ],
+      "piege": "Le commentaire contredit le code."
+    },
+    {
+      "id": "C02",
+      "famille": "comportement",
+      "question": "Que se passe-t-il si un autre billet du même blog a déjà cette ancre ?",
+      "reponse": "Roller ajoute un compteur collé à la fin (mon-premier-billet-sur-roller1, puis 2...) jusqu'à trouver une ancre libre dans ce blog.",
+      "criteres": [
+        [
+          "compteur",
+          "suffixe",
+          "roller1",
+          "base + count",
+          "chiffre"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/java/org/apache/roller/weblogger/business/jpa/JPAWeblogEntryManagerImpl.java:609"
+      ]
+    },
+    {
+      "id": "C03",
+      "famille": "comportement",
+      "question": "Par quels contrôles passe un commentaire anonyme avant d'être enregistré, avec la configuration par défaut ?",
+      "reponse": "Authentification par une question de calcul (MathCommentAuthenticator), puis 3 validateurs : liste de mots interdits, trop de liens (seuil 3), taille excessive (seuil 1000). Akismet existe mais est désactivé.",
+      "criteres": [
+        [
+          "mathcommentauthenticator",
+          "calcul",
+          "math"
+        ],
+        [
+          "bannedwordslist",
+          "mots interdits"
+        ],
+        [
+          "excesslinks",
+          "liens"
+        ],
+        [
+          "excesssize",
+          "taille"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/resources/org/apache/roller/weblogger/config/roller.properties:178",
+        "app/src/main/resources/org/apache/roller/weblogger/config/roller.properties:184",
+        "app/src/main/resources/org/apache/roller/weblogger/config/roller.properties:190"
+      ]
+    },
+    {
+      "id": "C04",
+      "famille": "comportement",
+      "question": "Un commentaire passe 2 validateurs sur 3. Quel statut reçoit-il ?",
+      "reponse": "SPAM. Le score est la moyenne des validateurs ; seul un score de 100 % donne APPROVED (ou PENDING si le blog exige la modération).",
+      "criteres": [
+        [
+          "spam"
+        ],
+        [
+          "moyenne",
+          "100"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/java/org/apache/roller/weblogger/ui/rendering/plugins/comments/CommentValidationManager.java:71",
+        "app/src/main/java/org/apache/roller/weblogger/ui/rendering/servlets/CommentServlet.java:320"
+      ],
+      "piege": "Un agent suppose souvent une modération (PENDING) au lieu du classement en spam."
+    },
+    {
+      "id": "C05",
+      "famille": "comportement",
+      "question": "Comment un billet programmé pour 18 h est-il publié ?",
+      "reponse": "La tâche ScheduledEntriesTask tourne toutes les minutes et fait passer les billets SCHEDULED dont la date est passée au statut PUBLISHED.",
+      "criteres": [
+        [
+          "scheduledentriestask"
+        ],
+        [
+          "minute",
+          "interval=1"
+        ],
+        [
+          "published"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/resources/org/apache/roller/weblogger/config/roller.properties:242",
+        "app/src/main/java/org/apache/roller/weblogger/business/runnable/ScheduledEntriesTask.java:155"
+      ]
+    },
+    {
+      "id": "C06",
+      "famille": "comportement",
+      "question": "Avec deux serveurs Roller en cluster, comment évite-t-on qu'une tâche planifiée tourne deux fois ?",
+      "reponse": "Par un bail (lease) en base : RollerTaskWithLeasing et l'entité TaskLock (table roller_tasklock) ; un serveur ne lance la tâche que s'il obtient le bail.",
+      "criteres": [
+        [
+          "lease",
+          "bail"
+        ],
+        [
+          "tasklock"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/java/org/apache/roller/weblogger/business/jpa/JPAThreadManagerImpl.java:73"
+      ]
+    },
+    {
+      "id": "C07",
+      "famille": "comportement",
+      "question": "Quand un visiteur affiche un blog, comment le compteur de visites est-il mis à jour ?",
+      "reponse": "PageServlet ajoute la visite dans une file en mémoire (HitCountQueue) ; HitCountProcessingJob la vide régulièrement en base. ResetHitCountsTask remet les compteurs à zéro une fois par jour (1440 minutes).",
+      "criteres": [
+        [
+          "hitcountqueue",
+          "file"
+        ],
+        [
+          "hitcountprocessingjob"
+        ],
+        [
+          "resethitcountstask",
+          "1440",
+          "jour"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/java/org/apache/roller/weblogger/ui/rendering/servlets/PageServlet.java:584",
+        "app/src/main/java/org/apache/roller/weblogger/business/runnable/HitCountProcessingJob.java:87",
+        "app/src/main/resources/org/apache/roller/weblogger/config/roller.properties:248"
+      ],
+      "piege": "Il n'y a pas d'UPDATE en base à chaque visite."
+    },
+    {
+      "id": "C08",
+      "famille": "comportement",
+      "question": "Une page de blog est en cache. Un commentaire est approuvé. Que se passe-t-il pour le cache ?",
+      "reponse": "CacheManager.invalidate(comment) prévient les gestionnaires de cache, qui invalident le contenu du blog concerné ; la page est aussi protégée par le 304 Not Modified basé sur la date de dernière modification du blog. Sans invalidation, l'entrée expirerait après 3600 s.",
+      "criteres": [
+        [
+          "cachemanager",
+          "invalidate"
+        ],
+        [
+          "lastmodified",
+          "304",
+          "dernière modification"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/java/org/apache/roller/weblogger/util/cache/CacheManager.java:234",
+        "app/src/main/java/org/apache/roller/weblogger/ui/rendering/servlets/PageServlet.java:188",
+        "app/src/main/resources/org/apache/roller/weblogger/config/roller.properties:299"
+      ]
+    },
+    {
+      "id": "D01",
+      "famille": "donnees",
+      "question": "Quels sont les statuts possibles d'un billet et d'un commentaire ?",
+      "reponse": "Billet : DRAFT, PUBLISHED, PENDING, SCHEDULED. Commentaire : APPROVED, DISAPPROVED, SPAM, PENDING.",
+      "criteres": [
+        [
+          "draft"
+        ],
+        [
+          "scheduled"
+        ],
+        [
+          "disapproved"
+        ],
+        [
+          "spam"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/java/org/apache/roller/weblogger/pojos/WeblogEntry.java:67",
+        "app/src/main/java/org/apache/roller/weblogger/pojos/WeblogEntryComment.java:37"
+      ]
+    },
+    {
+      "id": "D02",
+      "famille": "donnees",
+      "question": "Comment le nuage de tags d'un blog est-il calculé, et quand les compteurs bougent-ils ?",
+      "reponse": "Les compteurs sont stockés dans une table d'agrégats (roller_weblogentrytagagg, entité WeblogEntryTagAggregate), mis à jour seulement quand un billet est publié, pour que le nuage ne compte que les billets publiés.",
+      "criteres": [
+        [
+          "roller_weblogentrytagagg",
+          "weblogentrytagaggregate",
+          "agrégat"
+        ],
+        [
+          "publié",
+          "published"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/java/org/apache/roller/weblogger/business/jpa/JPAWeblogEntryManagerImpl.java:205",
+        "app/src/main/resources/sql/createdb.vm:214"
+      ]
+    },
+    {
+      "id": "D03",
+      "famille": "donnees",
+      "question": "Comment les mots de passe sont-ils stockés, et que devient un ancien mot de passe d'une vieille installation ?",
+      "reponse": "Chiffrés avec bcrypt. Les anciens mots de passe SHA sont mis à niveau en douceur (lazyUpgradeFrom=SHA), à la connexion.",
+      "criteres": [
+        [
+          "bcrypt"
+        ],
+        [
+          "sha"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/resources/org/apache/roller/weblogger/config/roller.properties:383",
+        "app/src/main/resources/org/apache/roller/weblogger/config/roller.properties:387"
+      ]
+    },
+    {
+      "id": "D04",
+      "famille": "donnees",
+      "question": "Quels droits peut avoir un utilisateur sur un blog donné ?",
+      "reponse": "Trois actions de WeblogPermission : admin, post, edit_draft. Un utilisateur limité à edit_draft ne peut modifier que des brouillons ou des billets en attente.",
+      "criteres": [
+        [
+          "admin"
+        ],
+        [
+          "post"
+        ],
+        [
+          "edit_draft"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/java/org/apache/roller/weblogger/pojos/WeblogPermission.java:35"
+      ]
+    },
+    {
+      "id": "D05",
+      "famille": "donnees",
+      "question": "Où sont rangés les réglages modifiables à chaud par l'administrateur, et où sont leurs valeurs par défaut ?",
+      "reponse": "En base, dans la table roller_properties ; leurs définitions et valeurs par défaut sont dans runtimeConfigDefs.xml. Les réglages de démarrage, eux, sont dans roller.properties.",
+      "criteres": [
+        [
+          "roller_properties"
+        ],
+        [
+          "runtimeconfigdefs"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/resources/sql/createdb.vm:256",
+        "app/src/main/resources/org/apache/roller/weblogger/config/runtimeConfigDefs.xml"
+      ]
+    }
+  ]
+}

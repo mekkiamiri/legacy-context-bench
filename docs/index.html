@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>legacy-context-bench : RAG, graphe ou exécution ?</title>
+<meta name="description" content="Quel contexte donner à un agent IA pour comprendre une appli legacy ? 20 questions sur Apache Roller, 5 configurations, des mesures.">
+<style>
+  :root { --bg:#fbfaf7; --fg:#1d1d1b; --mut:#6b6a66; --line:#e3e0d8; --acc:#b4441f; --ok:#2f6f4f; --card:#fff; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#161614; --fg:#ecebe6; --mut:#a09e97; --line:#33322e; --acc:#e8784f; --ok:#6fbf94; --card:#1f1f1c; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:880px; margin:0 auto; padding:48px 20px 80px; }
+  h1 { font-size:2.1rem; line-height:1.15; margin:0 0 12px; letter-spacing:-.02em; }
+  h2 { font-size:1.25rem; margin:56px 0 12px; }
+  p.lead { font-size:1.15rem; color:var(--mut); margin:0 0 20px; }
+  a { color:var(--acc); }
+  code { font:0.9em ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .facts { display:flex; flex-wrap:wrap; gap:8px; margin:20px 0; }
+  .facts span { border:1px solid var(--line); border-radius:999px; padding:4px 12px; font-size:.9rem; }
+  .configs { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; }
+  .configs div { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px; }
+  .configs b { display:block; }
+  .configs small { color:var(--mut); }
+  .filters { display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 16px; }
+  .filters button, .q button { font:inherit; cursor:pointer; border:1px solid var(--line); background:var(--card); color:var(--fg); border-radius:8px; padding:6px 12px; }
+  .filters button[aria-pressed="true"] { background:var(--fg); color:var(--bg); border-color:var(--fg); }
+  .q { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 18px; margin:10px 0; }
+  .q .head { display:flex; gap:10px; align-items:baseline; }
+  .q .id { font:600 .8rem ui-monospace, monospace; color:var(--mut); min-width:34px; }
+  .q .fam { margin-left:auto; font-size:.75rem; color:var(--mut); text-transform:uppercase; letter-spacing:.06em; }
+  .q p { margin:6px 0; }
+  .q .answer { display:none; border-top:1px dashed var(--line); margin-top:12px; padding-top:10px; }
+  .q.open .answer { display:block; }
+  .q.open .reveal { display:none; }
+  .trap { color:var(--acc); font-size:.95rem; }
+  .proofs { font-size:.85rem; color:var(--mut); }
+  .proofs a { color:var(--mut); }
+  table { border-collapse:collapse; width:100%; font-size:.95rem; }
+  th, td { border-bottom:1px solid var(--line); padding:8px 6px; text-align:left; }
+  .pending { background:var(--card); border:1px dashed var(--line); border-radius:12px; padding:18px; color:var(--mut); }
+  .score { font-variant-numeric:tabular-nums; }
+  footer { margin-top:64px; color:var(--mut); font-size:.9rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Agent IA sur du legacy :<br>RAG, graphe ou exécution ?</h1>
+  <p class="lead">Quel contexte donner à un agent pour qu'il comprenne vraiment une appli ancienne ? Au lieu de deviner, on mesure : même appli, mêmes questions, cinq configurations.</p>
+  <div class="facts">
+    <span>Apache Roller 7.0.0</span><span>~120 000 lignes Java</span><span>Struts 2 · JPA · Velocity</span><span>20 questions prouvées</span><span>5 configurations</span>
+  </div>
+
+  <h2>Les 5 configurations</h2>
+  <div class="configs">
+    <div><b>1. Agent seul</b><small>lecture et grep</small></div>
+    <div><b>2. + RAG</b><small>recherche sémantique</small></div>
+    <div><b>3. + Graphe</b><small>classes, appels</small></div>
+    <div><b>4. + Exécution</b><small>l'appli tourne, observée</small></div>
+    <div><b>5. Combinaison</b><small>2 + 3 + 4</small></div>
+  </div>
+
+  <h2>Les 20 questions : à vous de jouer</h2>
+  <p>Essayez de répondre avant de dévoiler. Chaque réponse est prouvée par des lignes du code de Roller (commit figé). Les questions marquées d'un piège ont fait tomber des agents pendant la préparation.</p>
+  <div class="filters" role="group" aria-label="Filtrer par famille">
+    <button data-f="tout" aria-pressed="true">Toutes</button>
+    <button data-f="structure" aria-pressed="false">Structure</button>
+    <button data-f="comportement" aria-pressed="false">Comportement</button>
+    <button data-f="donnees" aria-pressed="false">Données</button>
+    <button data-f="piege" aria-pressed="false">Avec piège</button>
+  </div>
+  <div id="questions"></div>
+
+  <h2>Résultats</h2>
+  <div id="results"></div>
+
+  <footer>
+    Code, protocole et notation : <a href="https://github.com/mekkiamiri/legacy-context-bench">github.com/mekkiamiri/legacy-context-bench</a> · Licence Apache 2.0 ·
+    Support du talk proposé à DevFest Nantes et Devoxx France 2027.
+  </footer>
+</main>
+<script src="data.js"></script>
+<script>
+  const B = window.BENCH, cible = B.questions.cible;
+  const FAM = { structure: "Structure", comportement: "Comportement", donnees: "Données" };
+  const lien = p => {
+    const [f, l] = p.split(":");
+    const url = `${cible.depot}/blob/${cible.commit}/${f}${l ? "#L" + l : ""}`;
+    return `<a href="${url}" target="_blank" rel="noopener">${f.split("/").pop()}${l ? ":" + l : ""}</a>`;
+  };
+  const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const zone = document.getElementById("questions");
+  zone.innerHTML = B.questions.questions.map(q => `
+    <article class="q" data-fam="${q.famille}" data-piege="${q.piege ? 1 : 0}">
+      <div class="head"><span class="id">${q.id}</span><p><b>${esc(q.question)}</b></p><span class="fam">${FAM[q.famille]}${q.piege ? " · piège" : ""}</span></div>
+      <button class="reveal">Voir la réponse</button>
+      <div class="answer">
+        <p>${esc(q.reponse)}</p>
+        ${q.piege ? `<p class="trap">Piège : ${esc(q.piege)}</p>` : ""}
+        <p class="proofs">Preuves : ${q.preuves.map(lien).join(" · ")}</p>
+      </div>
+    </article>`).join("");
+  zone.addEventListener("click", e => { if (e.target.classList.contains("reveal")) e.target.closest(".q").classList.add("open"); });
+  document.querySelectorAll(".filters button").forEach(b => b.addEventListener("click", () => {
+    document.querySelectorAll(".filters button").forEach(x => x.setAttribute("aria-pressed", x === b));
+    const f = b.dataset.f;
+    zone.querySelectorAll(".q").forEach(q => {
+      q.hidden = !(f === "tout" || q.dataset.fam === f || (f === "piege" && q.dataset.piege === "1"));
+    });
+  }));
+  const R = B.resultats, noms = Object.keys(R), res = document.getElementById("results");
+  if (!noms.length) {
+    res.innerHTML = `<div class="pending"><b>Mesures en cours.</b> Les résultats des 5 configurations seront publiés ici avant fin janvier 2027. Aucun chiffre n'est affiché avant d'avoir été mesuré.</div>`;
+  } else {
+    const pct = x => Math.round(x * 100) + " %";
+    res.innerHTML = `<table><thead><tr><th>Configuration</th><th>Total</th><th>Structure</th><th>Comportement</th><th>Données</th><th>Tokens</th><th>Temps</th></tr></thead><tbody>${
+      noms.map(n => { const r = R[n], m = r.meta || {};
+        return `<tr><td>${n}</td><td class="score"><b>${pct(r.total)}</b></td><td class="score">${pct(r.par_famille.structure)}</td><td class="score">${pct(r.par_famille.comportement)}</td><td class="score">${pct(r.par_famille.donnees)}</td><td class="score">${m.tokens ?? "–"}</td><td class="score">${m.duree ?? "–"}</td></tr>`;
+      }).join("")}</tbody></table>`;
+  }
+</script>
+</body>
+</html>

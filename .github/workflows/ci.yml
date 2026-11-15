@@ -1,0 +1,28 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+    tags: ["cfp-*"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Tests du banc
+        run: python3 -m unittest discover -s tests -v
+      - name: Page de démo à jour
+        run: python3 bench/build_site.py --check
+      - name: Preuves présentes dans Roller (commit figé)
+        run: |
+          git clone --filter=blob:none -q https://github.com/apache/roller.git /tmp/roller
+          git -C /tmp/roller checkout -q 52e064a0104c89e141100d22e5bc990899ba3c2f
+          python3 bench/score.py --check --roller /tmp/roller
