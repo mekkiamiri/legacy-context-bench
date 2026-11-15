@@ -4,7 +4,7 @@
 
 Ce dépôt mesure la réponse au lieu de la deviner. Même appli, mêmes questions, cinq configurations d'agent, trois mesures.
 
-- **Appli :** [Apache Roller](https://github.com/apache/roller) 7.0.0 (Java, Struts 2, JPA/EclipseLink, Velocity, JSP), environ 120 000 lignes Java, commit figé `52e064a`.
+- **Appli :** [Apache Roller](https://github.com/apache/roller) 7.0.0 (Java, Struts 2, JPA/EclipseLink, Velocity, JSP), environ 70 000 lignes de code Java (hors lignes vides et commentaires, tests compris), commit figé `52e064a`.
 - **Questions :** 20 questions dont la réponse est connue et prouvée par des lignes de code ([`questions/questions.json`](questions/questions.json)), en 3 familles : structure, comportement, données.
 - **Mesures :** taux de bonnes réponses, tokens consommés, temps.
 - **Démo :** <https://mekkiamiri.github.io/legacy-context-bench/>
