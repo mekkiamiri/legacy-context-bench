@@ -8,6 +8,7 @@ Ce dépôt mesure la réponse au lieu de la deviner. Même appli, mêmes questio
 - **Questions :** 20 questions dont la réponse est connue et prouvée par des lignes de code ([`questions/questions.json`](questions/questions.json)), en 3 familles : structure, comportement, données.
 - **Mesures :** taux de bonnes réponses, tokens consommés, temps.
 - **Démo :** <https://mekkiamiri.github.io/legacy-context-bench/>
+- **Slides :** <https://mekkiamiri.github.io/legacy-context-bench/slides/> (flèches pour naviguer, N pour les notes)
 
 > Support du talk « Agent IA sur du legacy : RAG, graphe ou exécution ? » (proposé à DevFest Nantes et Devoxx France 2027).
 

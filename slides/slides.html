@@ -1,0 +1,348 @@
+<!-- Slides du talk « Agent IA sur du legacy : RAG, graphe ou exécution ? »
+     Construire : python3 <kit>/build_deck.py slides/slides.html docs/slides/index.html "Agent IA sur du legacy"
+     Règle : aucun chiffre de résultat avant mesure ; les emplacements sont marqués « à mesurer ». -->
+
+<!-- 1. Titre -->
+<section class="slide">
+  {{RULER}}
+  <div class="pad" style="top:250px">
+    <div class="k reveal">Devoxx France 2027</div>
+    <h1 class="reveal" style="margin-top:40px">Agent IA sur du legacy :<br><em>RAG, graphe ou exécution ?</em></h1>
+  </div>
+  <div class="readouts reveal" style="position:absolute;left:120px;bottom:130px"><div><b>20</b><span>questions</span></div><div><b>5</b><span>configurations</span></div><div><b>3</b><span>mesures</span></div></div>
+  <div style="position:absolute;right:120px;bottom:140px;text-align:right" class="reveal"><h3>Mekki Amiri</h3><p class="muted" style="font-size:24px;margin:8px 0 0">Tech Lead · architecte système</p></div>
+  <aside class="notes">Bonjour. 45 minutes, une question, et des mesures plutôt que des opinions.</aside>
+</section>
+
+<!-- 2. Le problème -->
+<section class="slide">
+  <div class="pad" style="top:260px">
+    <div class="k reveal">Le problème</div>
+    <h2 class="reveal" style="margin-top:30px">L'agent répond avec aplomb.<br><em>Et il se trompe.</em></h2>
+  </div>
+  {{CHROME}}
+  <aside class="notes">Démo live : on demande à l'agent seul quel fournisseur JPA utilise Roller.</aside>
+</section>
+
+<!-- 3. Démo : la question piège -->
+<section class="slide">
+  <div class="pad">
+    <div class="k reveal">Démo · question S01</div>
+    <h3 class="reveal" style="margin:30px 0 40px">« Quel fournisseur JPA Roller utilise-t-il ? »</h3>
+    <pre class="code reveal"><span class="c">&lt;!-- app/pom.xml, ligne 156 --&gt;</span>
+<span class="c">&lt;!--dependency&gt;</span>
+<span class="c">    &lt;groupId&gt;org.hibernate&lt;/groupId&gt;</span>
+<span class="c">    &lt;artifactId&gt;hibernate-entitymanager&lt;/artifactId&gt;</span>
+<span class="c">...--&gt;</span>
+<span class="h">&lt;groupId&gt;org.eclipse.persistence&lt;/groupId&gt;</span>   <span class="c">&lt;!-- ligne 133 : le vrai --&gt;</span></pre>
+  </div>
+  {{CHROME}}
+  <aside class="notes">Un grep sur « hibernate » trouve une dépendance commentée. La bonne réponse est EclipseLink.</aside>
+</section>
+
+<!-- 4. La question du talk -->
+<section class="slide">
+  <div class="pad" style="top:220px">
+    <div class="k reveal">La question</div>
+    <h2 class="reveal" style="margin-top:30px">Quel contexte donner à l'agent<br>pour qu'il <em>comprenne</em> ?</h2>
+    <p class="muted reveal" style="margin-top:50px">Un index RAG ? Un graphe du code ? L'appli qui tourne ? Les trois ?</p>
+  </div>
+  {{CHROME}}
+</section>
+
+<!-- 5. Section protocole -->
+<section class="slide">
+  {{RULER}}
+  <div class="pad" style="top:320px"><div class="k reveal">Partie 1</div><h1 class="reveal" style="margin-top:30px">Le <em>banc</em></h1></div>
+  {{CHROME}}
+</section>
+
+<!-- 6. La cible -->
+<section class="slide">
+  <div class="pad">
+    <div class="k reveal">La cible</div>
+    <h2 class="reveal" style="margin:30px 0 60px">Apache Roller 7.0.0</h2>
+    <div class="readouts reveal"><div><b>~70k</b><span>lignes Java</span></div><div><b>28</b><span>tables</span></div><div><b>1</b><span>commit figé</span></div></div>
+    <p class="muted reveal" style="margin-top:50px">Struts 2 · JPA / EclipseLink · Velocity · JSP · Lucene</p>
+  </div>
+  {{CHROME}}
+  <aside class="notes">28 tables dans createdb.vm, dont celles de Planet (rag_*).</aside>
+</section>
+
+<!-- 7. Les 20 questions -->
+<section class="slide">
+  <div class="pad">
+    <div class="k reveal">20 questions, réponses prouvées</div>
+    <div class="readouts reveal" style="margin-top:60px"><div><b>7</b><span>structure</span></div><div><b>8</b><span>comportement</span></div><div><b>5</b><span>données</span></div></div>
+    <p class="reveal" style="margin-top:60px">Chaque réponse pointe vers des lignes du code.<br><span class="muted">Plusieurs questions sont des pièges.</span></p>
+  </div>
+  {{CHROME}}
+</section>
+
+<!-- 8. Un piège : le commentaire qui ment -->
+<section class="slide">
+  <div class="pad">
+    <div class="k reveal">Piège · question C01</div>
+    <pre class="code reveal" style="margin-top:40px"><span class="c">// Use only the first 4 words</span>          <span class="c">// ligne 820</span>
+StringTokenizer toker = new StringTokenizer(base);
+while (toker.hasMoreTokens() &amp;&amp; <span class="h">count &lt; 5</span>) {   <span class="c">// ligne 824</span></pre>
+    <h3 class="reveal" style="margin-top:50px">Le commentaire dit 4 mots. <em>Le code en prend 5.</em></h3>
+  </div>
+  {{CHROME}}
+</section>
+
+<!-- 9. Les mesures -->
+<section class="slide">
+  <div class="pad">
+    <div class="k reveal">Ce qu'on mesure</div>
+    <ul class="steps reveal">
+      <li data-n="01">Bonnes réponses <span class="muted">· notation automatique + relecture</span></li>
+      <li data-n="02">Tokens <span class="muted">· préparation comptée à part</span></li>
+      <li data-n="03">Temps <span class="muted">· 3 passages par question</span></li>
+    </ul>
+  </div>
+  {{CHROME}}
+</section>
+
+<!-- 10. Section configurations -->
+<section class="slide">
+  {{RULER}}
+  <div class="pad" style="top:320px"><div class="k reveal">Partie 2</div><h1 class="reveal" style="margin-top:30px">Cinq <em>configurations</em></h1></div>
+  {{CHROME}}
+</section>
+
+<!-- 11. Configuration 1 -->
+<section class="slide">
+  <div class="pad">
+    <div class="k reveal">1 / 5</div>
+    <h2 class="reveal" style="margin:30px 0 40px">Agent seul</h2>
+    <p class="reveal">Lire des fichiers. Chercher du texte. Rien d'autre.</p>
+    <p class="muted reveal">La référence : tout le reste doit faire mieux.</p>
+  </div>
+  {{CHROME}}
+</section>
+
+
+<!-- Démo Agent seul -->
+<section class="slide">
+  <div class="pad">
+    <div class="k reveal">1 / 5 · démo · question S01</div>
+    <h3 class="reveal" style="margin:30px 0 50px">« Quel fournisseur JPA Roller utilise-t-il réellement ? »</h3>
+    <div class="cols reveal">
+      <div class="panel"><p class="muted" style="margin:0 0 16px">Réponse de l'agent (Agent seul)</p><div class="todo">à capturer</div></div>
+      <div class="panel"><p class="muted" style="margin:0 0 16px">Verdict · tokens · temps</p><div class="todo">à mesurer</div></div>
+    </div>
+  </div>
+  {{CHROME}}
+  <aside class="notes">Démo en direct ; plan B : vidéo enregistrée de cette question.</aside>
+</section>
+
+<!-- 12. Configuration 2 -->
+<section class="slide">
+  <div class="pad">
+    <div class="k reveal">2 / 5</div>
+    <h2 class="reveal" style="margin:30px 0 40px">+ <em>RAG</em></h2>
+    <p class="reveal">Un index sémantique sur le code, la configuration et la doc.</p>
+    <p class="muted reveal">Hypothèse : trouve un concept sans connaître son nom ; perd le fil des appels.</p>
+  </div>
+  {{CHROME}}
+</section>
+
+
+<!-- Démo + RAG -->
+<section class="slide">
+  <div class="pad">
+    <div class="k reveal">2 / 5 · démo · question C04</div>
+    <h3 class="reveal" style="margin:30px 0 50px">« Un commentaire passe 2 validateurs sur 3 : quel statut ? »</h3>
+    <div class="cols reveal">
+      <div class="panel"><p class="muted" style="margin:0 0 16px">Réponse de l'agent (+ RAG)</p><div class="todo">à capturer</div></div>
+      <div class="panel"><p class="muted" style="margin:0 0 16px">Verdict · tokens · temps</p><div class="todo">à mesurer</div></div>
+    </div>
+  </div>
+  {{CHROME}}
+  <aside class="notes">Démo en direct ; plan B : vidéo enregistrée de cette question.</aside>
+</section>
+
+<!-- 13. Configuration 3 -->
+<section class="slide">
+  <div class="pad">
+    <div class="k reveal">3 / 5</div>
+    <h2 class="reveal" style="margin:30px 0 40px">+ <em>graphe</em> du code</h2>
+    <p class="reveal">Classes, appels, héritages, dépendances.</p>
+    <p class="muted reveal">Hypothèse : fort sur la structure ; aveugle sur le XML et les .properties.</p>
+  </div>
+  {{CHROME}}
+</section>
+
+
+<!-- Démo + graphe -->
+<section class="slide">
+  <div class="pad">
+    <div class="k reveal">3 / 5 · démo · question S04</div>
+    <h3 class="reveal" style="margin:30px 0 50px">« Comment /monblog/entry/mon-billet arrive-t-il à la page ? »</h3>
+    <div class="cols reveal">
+      <div class="panel"><p class="muted" style="margin:0 0 16px">Réponse de l'agent (+ graphe)</p><div class="todo">à capturer</div></div>
+      <div class="panel"><p class="muted" style="margin:0 0 16px">Verdict · tokens · temps</p><div class="todo">à mesurer</div></div>
+    </div>
+  </div>
+  {{CHROME}}
+  <aside class="notes">Démo en direct ; plan B : vidéo enregistrée de cette question.</aside>
+</section>
+
+<!-- 14. Configuration 4 -->
+<section class="slide">
+  <div class="pad">
+    <div class="k reveal">4 / 5</div>
+    <h2 class="reveal" style="margin:30px 0 40px">+ <em>exécution</em></h2>
+    <p class="reveal">L'appli tourne. L'agent déclenche des scénarios et observe HTTP, SQL, traces.</p>
+    <p class="muted reveal">Hypothèse : voit le vrai comportement ; coûte cher.</p>
+  </div>
+  {{CHROME}}
+  <aside class="notes">Démo : poster un commentaire avec 4 liens, observer le statut SPAM.</aside>
+</section>
+
+
+<!-- Démo + exécution -->
+<section class="slide">
+  <div class="pad">
+    <div class="k reveal">4 / 5 · démo · question C07</div>
+    <h3 class="reveal" style="margin:30px 0 50px">« Comment le compteur de visites est-il mis à jour ? »</h3>
+    <div class="cols reveal">
+      <div class="panel"><p class="muted" style="margin:0 0 16px">Réponse de l'agent (+ exécution)</p><div class="todo">à capturer</div></div>
+      <div class="panel"><p class="muted" style="margin:0 0 16px">Verdict · tokens · temps</p><div class="todo">à mesurer</div></div>
+    </div>
+  </div>
+  {{CHROME}}
+  <aside class="notes">Démo en direct ; plan B : vidéo enregistrée de cette question.</aside>
+</section>
+
+<!-- 15. Configuration 5 -->
+<section class="slide">
+  <div class="pad">
+    <div class="k reveal">5 / 5</div>
+    <h2 class="reveal" style="margin:30px 0 40px">Tout <em>combiné</em></h2>
+    <p class="reveal">L'agent choisit lui-même son outil.</p>
+    <p class="muted reveal">La vraie question : mieux que le meilleur seul ? À quel prix ?</p>
+  </div>
+  {{CHROME}}
+</section>
+
+
+<!-- Démo Combinaison -->
+<section class="slide">
+  <div class="pad">
+    <div class="k reveal">5 / 5 · démo · question C01</div>
+    <h3 class="reveal" style="margin:30px 0 50px">« Quelle ancre pour « Mon Premier Billet Sur Roller Et Java » ? »</h3>
+    <div class="cols reveal">
+      <div class="panel"><p class="muted" style="margin:0 0 16px">Réponse de l'agent (Combinaison)</p><div class="todo">à capturer</div></div>
+      <div class="panel"><p class="muted" style="margin:0 0 16px">Verdict · tokens · temps</p><div class="todo">à mesurer</div></div>
+    </div>
+  </div>
+  {{CHROME}}
+  <aside class="notes">Démo en direct ; plan B : vidéo enregistrée de cette question.</aside>
+</section>
+
+<!-- 16. Section résultats -->
+<section class="slide">
+  {{RULER}}
+  <div class="pad" style="top:320px"><div class="k reveal">Partie 3</div><h1 class="reveal" style="margin-top:30px">Les <em>résultats</em></h1></div>
+  {{CHROME}}
+</section>
+
+<!-- 17. Tableau des résultats (à mesurer) -->
+<section class="slide">
+  <div class="pad">
+    <div class="k reveal">Bonnes réponses par famille</div>
+    <table class="m reveal" style="margin-top:40px">
+      <tr><th>Configuration</th><th>Structure</th><th>Comportement</th><th>Données</th><th>Tokens</th></tr>
+      <tr><td>Agent seul</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="n">—</td></tr>
+      <tr><td>+ RAG</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="n">—</td></tr>
+      <tr><td>+ graphe</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="n">—</td></tr>
+      <tr><td>+ exécution</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="n">—</td></tr>
+      <tr><td>Combinaison</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="n">—</td></tr>
+    </table>
+    <div class="todo reveal" style="margin-top:36px">à mesurer · publication avant fin janvier 2027</div>
+  </div>
+  {{CHROME}}
+</section>
+
+
+<!-- Prédictions contre mesures -->
+<section class="slide">
+  <div class="pad">
+    <div class="k reveal">Nos prédictions, confrontées aux mesures</div>
+    <table class="m reveal" style="margin-top:40px">
+      <tr><th>Prédiction (posée avant de mesurer)</th><th>Verdict</th></tr>
+      <tr><td>Le RAG perd le fil des appels</td><td class="n">à mesurer</td></tr>
+      <tr><td>Le graphe est aveugle au XML et aux .properties</td><td class="n">à mesurer</td></tr>
+      <tr><td>L'exécution voit le vrai comportement, mais coûte cher</td><td class="n">à mesurer</td></tr>
+      <tr><td>Aucune configuration seule ne gagne partout</td><td class="n">à mesurer</td></tr>
+    </table>
+    <p class="muted reveal" style="margin-top:30px">Si une prédiction est fausse, on le dit ici.</p>
+  </div>
+  {{CHROME}}
+</section>
+
+<!-- 18. Où chacun échoue (à mesurer) -->
+<section class="slide">
+  <div class="pad" style="top:240px">
+    <div class="k reveal">Où chaque option échoue</div>
+    <h2 class="reveal" style="margin-top:30px">Les erreurs, <em>montrées telles quelles</em></h2>
+    <div class="todo reveal" style="margin-top:50px">à mesurer · 3 exemples d'erreurs réelles</div>
+  </div>
+  {{CHROME}}
+</section>
+
+<!-- 19. Le coût -->
+<section class="slide">
+  <div class="pad" style="top:240px">
+    <div class="k reveal">Le coût</div>
+    <h2 class="reveal" style="margin-top:30px">Combien coûte <em>la préparation</em> du contexte ?</h2>
+    <p class="muted reveal" style="margin-top:40px">Indexer, construire le graphe, démarrer l'appli : compté à part.</p>
+    <div class="todo reveal" style="margin-top:30px">à mesurer</div>
+  </div>
+  {{CHROME}}
+</section>
+
+<!-- 20. Section : à emporter -->
+<section class="slide">
+  {{RULER}}
+  <div class="pad" style="top:320px"><div class="k reveal">Partie 4</div><h1 class="reveal" style="margin-top:30px">Quel contexte, <em>quand ?</em></h1></div>
+  {{CHROME}}
+</section>
+
+<!-- 21. Arbre de décision (provisoire) -->
+<section class="slide">
+  <div class="pad">
+    <div class="k reveal">Arbre de décision · provisoire</div>
+    <div class="cols reveal" style="margin-top:50px;grid-template-columns:1fr 1fr 1fr;gap:40px">
+      <div class="panel"><h3>« De quoi c'est fait ? »</h3><p class="muted">structure</p><div class="todo">à mesurer</div></div>
+      <div class="panel"><h3>« Que se passe-t-il ? »</h3><p class="muted">comportement</p><div class="todo">à mesurer</div></div>
+      <div class="panel"><h3>« Qu'est-ce qui est stocké ? »</h3><p class="muted">données</p><div class="todo">à mesurer</div></div>
+    </div>
+  </div>
+  {{CHROME}}
+</section>
+
+<!-- 22. Refaire chez soi -->
+<section class="slide">
+  <div class="pad">
+    <div class="k reveal">Chez vous, demain</div>
+    <pre class="code reveal" style="margin-top:40px">git clone https://github.com/mekkiamiri/legacy-context-bench
+python3 bench/score.py --check
+python3 bench/score.py results/&lt;config&gt;/answers.json</pre>
+    <p class="reveal" style="margin-top:40px">Remplacez Roller par votre code, et les 20 questions par les vôtres.</p>
+  </div>
+  {{CHROME}}
+</section>
+
+<!-- 23. Fin -->
+<section class="slide">
+  {{RULER}}
+  <div class="pad" style="top:300px">
+    <h2 class="reveal">Mesurez avant de <em>croire</em>.</h2>
+    <p class="reveal" style="margin-top:50px">mekkiamiri.github.io/legacy-context-bench</p>
+    <p class="muted reveal">Questions ?</p>
+  </div>
+  {{CHROME}}
+</section>
