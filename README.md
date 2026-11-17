@@ -30,6 +30,7 @@ Ce dépôt mesure la réponse au lieu de la deviner. Même appli, mêmes questio
 | Notation automatique + tests | fait |
 | Page de démo | fait (résultats affichés quand ils existent) |
 | Configuration 1 « agent seul » (Sonnet 5.5, 3 passages) | **mesurée le 17/11/2026 : 96 à 97 % de bonnes réponses, 0,047 $ et 15 s par question** ([résultats](results/1-agent-seul/)) |
+| Configuration 1 sur le jeu difficile (10 questions, 3 passages) | **mesurée le 17/11/2026 : 95 à 100 %, 0,040 $ et 13 s par question** ; l'agent a relevé une erreur de l'auteur des questions (H03, voir PROTOCOLE.md) |
 | Configurations 2 à 5 | en cours, publication prévue avant fin janvier 2027 |
 
 Aucun chiffre n'est publié avant d'avoir été mesuré. Si les mesures contredisent l'intuition de départ, ce dépôt le dira.

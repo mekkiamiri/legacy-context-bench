@@ -65,16 +65,18 @@ def main() -> int:
     a.add_argument("--passes", type=int, default=3)
     a.add_argument("--model")
     a.add_argument("--delai", type=int, default=600)
+    a.add_argument("--questions", type=Path, default=RACINE / "questions" / "questions.json")
+    a.add_argument("--suffixe", default="", help="ajouté au dossier de résultats, ex. -difficiles")
     args = a.parse_args()
 
-    data = json.loads((RACINE / "questions" / "questions.json").read_text(encoding="utf-8"))
+    data = json.loads(args.questions.read_text(encoding="utf-8"))
     commit = subprocess.run(["git", "-C", str(args.roller), "rev-parse", "HEAD"],
                             capture_output=True, text=True).stdout.strip()
     if commit != data["cible"]["commit"]:
         sys.exit(f"Le clone de Roller est au commit {commit}, attendu {data['cible']['commit']}")
     version = subprocess.run(["claude", "--version"], capture_output=True, text=True).stdout.strip()
 
-    sortie = RACINE / "results" / args.config
+    sortie = RACINE / "results" / (args.config + args.suffixe)
     sortie.mkdir(parents=True, exist_ok=True)
     runs = sortie / "runs.jsonl"
     with runs.open("w", encoding="utf-8") as f:

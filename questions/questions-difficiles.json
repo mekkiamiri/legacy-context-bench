@@ -1,0 +1,262 @@
+{
+  "cible": {
+    "projet": "Apache Roller",
+    "depot": "https://github.com/apache/roller",
+    "commit": "52e064a0104c89e141100d22e5bc990899ba3c2f",
+    "version": "7.0.0"
+  },
+  "notation": "Comme questions.json. Jeu difficile ajouté le 17/11/2026 après la première mesure (agent seul à 96-97 % sur le jeu principal) : questions exhaustives, croisant plusieurs fichiers, ou dont la réponse se déduit en remontant la pile d'appels.",
+  "questions": [
+    {
+      "id": "H01",
+      "famille": "structure",
+      "question": "Dans quel ordre les filtres servlet s'appliquent-ils à une requête publique GET /monblog/ (avant tout forward) ?",
+      "reponse": "CharEncodingFilter, BootstrapSecurityFilter, SpringFirewallExceptionFilter, securityFilter (Spring Security), BootstrapFilter, PersistenceSessionFilter, InitFilter, puis RequestMappingFilter. IPBanFilter, les filtres de sel, XmlRpcEnabledFilter et struts2 ne s'appliquent pas à cette URL.",
+      "criteres": [
+        [
+          "charencodingfilter"
+        ],
+        [
+          "bootstrapsecurityfilter"
+        ],
+        [
+          "persistencesessionfilter"
+        ],
+        [
+          "initfilter"
+        ],
+        [
+          "requestmappingfilter"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/webapp/WEB-INF/web.xml:118",
+        "app/src/main/webapp/WEB-INF/web.xml:203"
+      ],
+      "piege": "L'ordre vient de l'ordre des filter-mapping, et plusieurs filtres ne s'appliquent qu'à d'autres URL ou à d'autres dispatchers."
+    },
+    {
+      "id": "H02",
+      "famille": "comportement",
+      "question": "Quand le filtre IPBanFilter s'applique-t-il vraiment ?",
+      "reponse": "Seulement sur les FORWARD vers /roller-ui/rendering/comment/*, c'est-à-dire quand un commentaire est posté (après la réécriture par RequestMappingFilter). Il ne filtre pas les autres requêtes, malgré son nom.",
+      "criteres": [
+        [
+          "forward"
+        ],
+        [
+          "comment"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/webapp/WEB-INF/web.xml:127"
+      ],
+      "piege": "Son nom suggère un filtre global."
+    },
+    {
+      "id": "H03",
+      "famille": "structure",
+      "question": "Quels plugins de mise en forme des billets sont actifs par défaut, et lequel existe sans être activé ?",
+      "reponse": "Les 4 plugins sont actifs par défaut (plugins.page) : ConvertLineBreaksPlugin, ObfuscateEmailPlugin, SmileysPlugin et EncodePreTagsPlugin, ce dernier sur la ligne de continuation 528. Aucun n'est inactif : la question contient une fausse prémisse, qu'une bonne réponse doit relever.",
+      "criteres": [
+        [
+          "convertlinebreaks"
+        ],
+        [
+          "obfuscateemail"
+        ],
+        [
+          "smileys"
+        ],
+        [
+          "encodepretags"
+        ],
+        [
+          "aucun",
+          "prémisse",
+          "premisse",
+          "tous les quatre",
+          "les 4",
+          "quatre plugins"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/resources/org/apache/roller/weblogger/config/roller.properties:524",
+        "app/src/main/resources/org/apache/roller/weblogger/config/roller.properties:528"
+      ],
+      "piege": "Fausse prémisse involontaire de l'auteur des questions (il avait lu la liste sans la ligne de continuation) ; l'agent l'a relevée aux 3 passages."
+    },
+    {
+      "id": "H04",
+      "famille": "structure",
+      "question": "Combien de validateurs de commentaires existent dans le code, et combien sont activés par défaut ?",
+      "reponse": "5 classes implémentent CommentValidator (Akismet, Bannedwordslist, ExcessLinks, ExcessSize, TrackbackLinkback) ; 3 sont activées par défaut (Bannedwordslist, ExcessLinks, ExcessSize).",
+      "criteres": [
+        [
+          "5",
+          "cinq"
+        ],
+        [
+          "3",
+          "trois"
+        ],
+        [
+          "trackbacklinkback"
+        ],
+        [
+          "akismet"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/resources/org/apache/roller/weblogger/config/roller.properties:184",
+        "app/src/main/java/org/apache/roller/weblogger/ui/rendering/plugins/comments/TrackbackLinkbackCommentValidator.java:29"
+      ],
+      "piege": "TrackbackLinkbackCommentValidator est oublié si on ne lit que la configuration."
+    },
+    {
+      "id": "H05",
+      "famille": "donnees",
+      "question": "Combien de tables le script de création de la base crée-t-il, et combien appartiennent au module Planet ?",
+      "reponse": "28 tables au total dans createdb.vm, dont 6 pour Planet (rag_properties, rag_planet, rag_group, rag_subscription, rag_group_subscription, rag_entry).",
+      "criteres": [
+        [
+          "28",
+          "vingt-huit"
+        ],
+        [
+          "6 ",
+          "six",
+          " 6"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/resources/sql/createdb.vm:302"
+      ],
+      "piege": "Compter exactement demande de lire tout le script."
+    },
+    {
+      "id": "H06",
+      "famille": "comportement",
+      "question": "Quels mots ne peuvent jamais servir de nom (handle) de blog dans l'URL ?",
+      "reponse": "La liste rendering.weblogMapper.rollerProtectedUrls : roller-ui, roller-services, images, theme, themes, CommentAuthenticatorServlet, index.jsp, favicon.svg, robots.txt, page, flavor, rss, atom, language, search, comments, rsd, resource, planetrss (plus d'éventuels userProtectedUrls).",
+      "criteres": [
+        [
+          "roller-ui"
+        ],
+        [
+          "planetrss"
+        ],
+        [
+          "robots.txt"
+        ],
+        [
+          "flavor"
+        ],
+        [
+          "rsd"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/resources/org/apache/roller/weblogger/config/roller.properties:456"
+      ]
+    },
+    {
+      "id": "H07",
+      "famille": "donnees",
+      "question": "Quels formats de mot de passe Roller sait-il vérifier, et lequel sert à encoder les nouveaux mots de passe par défaut ?",
+      "reponse": "Un DelegatingPasswordEncoder accepte bcrypt, pbkdf2, scrypt, argon2 et noop (test), plus l'ancien SHA-1 sans préfixe pour la mise à niveau douce (lazyUpgradeFrom=SHA). Les nouveaux mots de passe sont encodés en bcrypt.",
+      "criteres": [
+        [
+          "bcrypt"
+        ],
+        [
+          "pbkdf2"
+        ],
+        [
+          "scrypt"
+        ],
+        [
+          "argon2"
+        ],
+        [
+          "sha"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/java/org/apache/roller/weblogger/ui/core/RollerContext.java:300",
+        "app/src/main/resources/org/apache/roller/weblogger/config/roller.properties:383"
+      ]
+    },
+    {
+      "id": "H08",
+      "famille": "comportement",
+      "question": "Quelles sont la taille et la durée de vie par défaut du cache des pages de blog et du cache du site entier ?",
+      "reponse": "Pages de blog (weblogpage) : 400 entrées, 3600 s. Site entier (sitewide) : 50 entrées, 1800 s.",
+      "criteres": [
+        [
+          "400"
+        ],
+        [
+          "3600"
+        ],
+        [
+          "50"
+        ],
+        [
+          "1800"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/resources/org/apache/roller/weblogger/config/roller.properties:293",
+        "app/src/main/resources/org/apache/roller/weblogger/config/roller.properties:298"
+      ]
+    },
+    {
+      "id": "H09",
+      "famille": "comportement",
+      "question": "Si on retire ScheduledEntriesTask de tasks.enabled, que devient un billet programmé dont la date est passée ?",
+      "reponse": "Il reste au statut SCHEDULED et n'est jamais publié automatiquement : seule ScheduledEntriesTask fait passer les billets SCHEDULED à PUBLISHED, et les pages ne listent que les billets PUBLISHED.",
+      "criteres": [
+        [
+          "scheduled"
+        ],
+        [
+          "jamais",
+          "reste",
+          "pas publié",
+          "n'est pas publié",
+          "non publié"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/resources/org/apache/roller/weblogger/config/roller.properties:234",
+        "app/src/main/java/org/apache/roller/weblogger/business/runnable/ScheduledEntriesTask.java:155"
+      ]
+    },
+    {
+      "id": "H10",
+      "famille": "comportement",
+      "question": "Que se passe-t-il au démarrage si passwds.encryption.lazyUpgradeFrom vaut « SHA-256 » ?",
+      "reponse": "RollerContext.createPasswordEncoder() lève une RuntimeException (« is no valid encoding to upgrade from ») pendant contextInitialized ; seule WebloggerException est rattrapée, donc l'application web ne démarre pas.",
+      "criteres": [
+        [
+          "runtimeexception",
+          "exception"
+        ],
+        [
+          "démarre pas",
+          "ne démarre",
+          "échec du démarrage",
+          "fails to start",
+          "ne se lance pas",
+          "déploiement"
+        ]
+      ],
+      "preuves": [
+        "app/src/main/java/org/apache/roller/weblogger/ui/core/RollerContext.java:316",
+        "app/src/main/java/org/apache/roller/weblogger/ui/core/RollerContext.java:213"
+      ],
+      "piege": "Seules les valeurs plaintext, MD5 et SHA sont acceptées ; la conséquence se lit en remontant la pile d'appels."
+    }
+  ]
+}

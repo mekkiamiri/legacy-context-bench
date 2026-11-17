@@ -24,12 +24,12 @@ def charger_questions(chemin: Path = QUESTIONS) -> dict:
     return json.loads(chemin.read_text(encoding="utf-8"))
 
 
-def verifier(data: dict, roller: Path | None = None) -> list[str]:
+def verifier(data: dict, roller: Path | None = None, attendu: int | None = 20) -> list[str]:
     """Retourne la liste des erreurs du fichier de questions."""
     erreurs = []
     qs = data.get("questions", [])
-    if len(qs) != 20:
-        erreurs.append(f"{len(qs)} questions au lieu de 20")
+    if attendu is not None and len(qs) != attendu:
+        erreurs.append(f"{len(qs)} questions au lieu de {attendu}")
     ids = [q.get("id") for q in qs]
     if len(set(ids)) != len(ids):
         erreurs.append("ids en double")
@@ -77,11 +77,12 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("reponses", nargs="?", type=Path)
     p.add_argument("--check", action="store_true", help="vérifie le fichier de questions")
     p.add_argument("--roller", type=Path, help="clone de Roller pour vérifier les preuves")
+    p.add_argument("--questions", type=Path, default=QUESTIONS, help="fichier de questions (défaut : jeu principal)")
     args = p.parse_args(argv)
-    data = charger_questions()
+    data = charger_questions(args.questions)
 
     if args.check:
-        erreurs = verifier(data, args.roller)
+        erreurs = verifier(data, args.roller, 20 if args.questions == QUESTIONS else None)
         for e in erreurs:
             print(f"ERREUR {e}")
         print(f"{len(data['questions'])} questions, {len(erreurs)} erreur(s)")

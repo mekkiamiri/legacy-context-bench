@@ -35,3 +35,7 @@ Après relecture humaine du passage 1 de la configuration « agent seul », et *
 - C02 : « numéro » ajouté aux mots-clés (une réponse juste était notée fausse).
 - C08 : la réponse de référence couvrait un seul chemin ; l'approbation par un modérateur vide tout le cache du blog (`Comments.java:382`). Référence et critères élargis.
 Les notes de toutes les configurations sont calculées avec ce fichier corrigé.
+
+## Jeu difficile (17/11/2026)
+Après une première mesure à 96-97 % pour l'agent seul, 10 questions plus difficiles ont été ajoutées (`questions/questions-difficiles.json`) : listes exhaustives, croisement configuration et code, pile d'appels à remonter.
+**Erreur de l'auteur des questions, relevée par l'agent :** pour H03, la référence disait qu'un plugin existait sans être activé ; l'agent a répondu, aux 3 passages, que les 4 plugins sont actifs (ligne de continuation 528 de `roller.properties`). L'agent avait raison. La référence est corrigée et la question est gardée comme test de fausse prémisse.
