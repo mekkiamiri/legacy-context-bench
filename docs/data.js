@@ -174,7 +174,9 @@ window.BENCH = {
       "suffixe",
       "roller1",
       "base + count",
-      "chiffre"
+      "chiffre",
+      "numéro",
+      "numero"
      ]
     ],
     "preuves": [
@@ -301,7 +303,7 @@ window.BENCH = {
     "id": "C08",
     "famille": "comportement",
     "question": "Une page de blog est en cache. Un commentaire est approuvé. Que se passe-t-il pour le cache ?",
-    "reponse": "CacheManager.invalidate(comment) prévient les gestionnaires de cache, qui invalident le contenu du blog concerné ; la page est aussi protégée par le 304 Not Modified basé sur la date de dernière modification du blog. Sans invalidation, l'entrée expirerait après 3600 s.",
+    "reponse": "Deux chemins. Approbation par un modérateur dans l'admin : Comments.java appelle CacheManager.invalidate(weblog), qui vide tout le cache du blog. Commentaire posté et accepté : CommentServlet appelle CacheManager.invalidate(comment). La page est aussi protégée par le 304 Not Modified basé sur la date de dernière modification du blog ; sans invalidation, l'entrée expire après 3600 s.",
     "criteres": [
      [
       "cachemanager",
@@ -310,10 +312,16 @@ window.BENCH = {
      [
       "lastmodified",
       "304",
-      "dernière modification"
+      "dernière modification",
+      "tout le cache",
+      "cache du weblog",
+      "cache du blog",
+      "getactionweblog",
+      "invalidate(weblog"
      ]
     ],
     "preuves": [
+     "app/src/main/java/org/apache/roller/weblogger/ui/struts2/editor/Comments.java:382",
      "app/src/main/java/org/apache/roller/weblogger/util/cache/CacheManager.java:234",
      "app/src/main/java/org/apache/roller/weblogger/ui/rendering/servlets/PageServlet.java:188",
      "app/src/main/resources/org/apache/roller/weblogger/config/roller.properties:299"
@@ -422,5 +430,44 @@ window.BENCH = {
    }
   ]
  },
- "resultats": {}
+ "resultats": {
+  "1-agent-seul": {
+   "total": 0.97,
+   "par_famille": {
+    "comportement": 1.0,
+    "donnees": 0.9,
+    "structure": 1.0
+   },
+   "detail": {
+    "S01": 1.0,
+    "S02": 1.0,
+    "S03": 1.0,
+    "S04": 1.0,
+    "S05": 1.0,
+    "S06": 1.0,
+    "S07": 1.0,
+    "C01": 1.0,
+    "C02": 1.0,
+    "C03": 1.0,
+    "C04": 1.0,
+    "C05": 1.0,
+    "C06": 1.0,
+    "C07": 1.0,
+    "C08": 1.0,
+    "D01": 1.0,
+    "D02": 1.0,
+    "D03": 1.0,
+    "D04": 1.0,
+    "D05": 0.5
+   },
+   "meta": {
+    "config": "1-agent-seul",
+    "passage": 1,
+    "cli": "2.1.326 (Claude Code)",
+    "modele_demande": "claude-sonnet-5-5",
+    "roller_commit": "52e064a0104c89e141100d22e5bc990899ba3c2f",
+    "date": "2026-11-17"
+   }
+  }
+ }
 };

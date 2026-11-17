@@ -29,7 +29,8 @@ Ce dépôt mesure la réponse au lieu de la deviner. Même appli, mêmes questio
 | Protocole et 20 questions avec preuves | fait |
 | Notation automatique + tests | fait |
 | Page de démo | fait (résultats affichés quand ils existent) |
-| Mesures des 5 configurations | **en cours, publication prévue avant fin janvier 2027** |
+| Configuration 1 « agent seul » (Sonnet 5.5, 3 passages) | **mesurée le 17/11/2026 : 96 à 97 % de bonnes réponses, 0,047 $ et 15 s par question** ([résultats](results/1-agent-seul/)) |
+| Configurations 2 à 5 | en cours, publication prévue avant fin janvier 2027 |
 
 Aucun chiffre n'est publié avant d'avoir été mesuré. Si les mesures contredisent l'intuition de départ, ce dépôt le dira.
 

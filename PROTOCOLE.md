@@ -29,3 +29,9 @@ Hypothèse de départ (à confirmer ou à infirmer) : le graphe aide surtout la 
 - Les questions sont écrites par une seule personne, qui connaît les réponses. Toute proposition de question est bienvenue (issue).
 - La notation par mots-clés peut sur-noter une réponse qui cite un mot sans le comprendre : d'où la relecture humaine.
 - Roller est un projet public : le modèle a peut-être vu son code à l'entraînement. Les pièges (commentaire faux, dépendance commentée) servent aussi à le détecter.
+
+## Calibration (17/11/2026)
+Après relecture humaine du passage 1 de la configuration « agent seul », et **avant** de mesurer les autres configurations, deux questions ont été corrigées :
+- C02 : « numéro » ajouté aux mots-clés (une réponse juste était notée fausse).
+- C08 : la réponse de référence couvrait un seul chemin ; l'approbation par un modérateur vide tout le cache du blog (`Comments.java:382`). Référence et critères élargis.
+Les notes de toutes les configurations sont calculées avec ce fichier corrigé.
