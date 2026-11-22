@@ -1,27 +1,29 @@
 <!-- Slides du talk « Agent IA sur du legacy : RAG, graphe ou exécution ? »
      Construire : python3 <kit>/build_deck.py slides/slides.html docs/slides/index.html "Agent IA sur du legacy"
-     Règle : aucun chiffre de résultat avant mesure ; les emplacements sont marqués « à mesurer ». -->
+     Règle : aucun chiffre inventé. Chiffres réels = configuration « agent seul », mesurée le 17/11/2026
+     (results/1-agent-seul et results/1-agent-seul-difficiles, notés avec bench/score.py).
+     Configurations 2 à 5 : hypothèse + protocole + exemple réel du dépôt, mesures publiées en janvier 2027. -->
 
 <!-- 1. Titre -->
 <section class="slide">
   {{RULER}}
   <div class="pad" style="top:250px">
-    <div class="k reveal">Devoxx France 2027</div>
+    <div class="k reveal">Conférence · 50 min</div>
     <h1 class="reveal" style="margin-top:40px">Agent IA sur du legacy :<br><em>RAG, graphe ou exécution ?</em></h1>
   </div>
-  <div class="readouts reveal" style="position:absolute;left:120px;bottom:130px"><div><b>20</b><span>questions</span></div><div><b>5</b><span>configurations</span></div><div><b>3</b><span>mesures</span></div></div>
+  <div class="readouts reveal" style="position:absolute;left:120px;bottom:130px"><div><b>20</b><span>questions</span></div><div><b>5</b><span>configurations</span></div><div><b>3</b><span>passages</span></div></div>
   <div style="position:absolute;right:120px;bottom:140px;text-align:right" class="reveal"><h3>Mekki Amiri</h3><p class="muted" style="font-size:24px;margin:8px 0 0">Tech Lead · architecte système</p></div>
-  <aside class="notes">Bonjour. 45 minutes, une question, et des mesures plutôt que des opinions.</aside>
+  <aside class="notes">Bonjour. 50 minutes, une question, et des mesures plutôt que des opinions. Tout ce que je montre est dans un dépôt public : vous pourrez le rejouer ce soir.</aside>
 </section>
 
 <!-- 2. Le problème -->
 <section class="slide">
   <div class="pad" style="top:260px">
     <div class="k reveal">Le problème</div>
-    <h2 class="reveal" style="margin-top:30px">L'agent répond avec aplomb.<br><em>Et il se trompe.</em></h2>
+    <h2 class="reveal" style="margin-top:30px">L'agent répond avec aplomb.<br><em>Mais a-t-il raison ?</em></h2>
   </div>
   {{CHROME}}
-  <aside class="notes">Démo live : on demande à l'agent seul quel fournisseur JPA utilise Roller.</aside>
+  <aside class="notes">Un agent répond toujours avec assurance. Sur du code ancien, on ne sait pas s'il a lu ou s'il a deviné. On va le vérifier en direct sur une question piège.</aside>
 </section>
 
 <!-- 3. Démo : la question piège -->
@@ -37,10 +39,24 @@
 <span class="h">&lt;groupId&gt;org.eclipse.persistence&lt;/groupId&gt;</span>   <span class="c">&lt;!-- ligne 133 : le vrai --&gt;</span></pre>
   </div>
   {{CHROME}}
-  <aside class="notes">Un grep sur « hibernate » trouve une dépendance commentée. La bonne réponse est EclipseLink.</aside>
+  <aside class="notes">Démo live : on pose S01 à l'agent seul. Le piège : un grep sur « hibernate » trouve une dépendance commentée. La bonne réponse est EclipseLink. Plan B : la réponse enregistrée du 17/11, slide suivante.</aside>
 </section>
 
-<!-- 4. La question du talk -->
+<!-- 4. La réponse réelle -->
+<section class="slide">
+  <div class="pad">
+    <div class="k reveal">Réponse de l'agent seul · passage 1 · 17/11/2026</div>
+    <pre class="code reveal" style="margin-top:40px">Roller utilise <span class="h">EclipseLink</span> à l'exécution.
+- app/pom.xml:132-143 déclare org.eclipse.persistence.jpa
+- Hibernate (app/pom.xml:156-173) est <span class="h">entièrement commenté</span>
+- persistence.xml:23 ne fixe aucun &lt;provider&gt;</pre>
+    <div class="readouts reveal" style="margin-top:50px"><div><b>3/3</b><span>passages justes</span></div><div><b>~11 s</b><span>par passage</span></div><div><b>~20k</b><span>tokens lus</span></div></div>
+  </div>
+  {{CHROME}}
+  <aside class="notes">Il ne tombe pas dans le piège. Trois passages sur trois, en 10 à 11 secondes, avec les bonnes lignes citées. C'était ma première surprise : je m'attendais à le voir échouer ici.</aside>
+</section>
+
+<!-- 5. La question du talk -->
 <section class="slide">
   <div class="pad" style="top:220px">
     <div class="k reveal">La question</div>
@@ -48,16 +64,17 @@
     <p class="muted reveal" style="margin-top:50px">Un index RAG ? Un graphe du code ? L'appli qui tourne ? Les trois ?</p>
   </div>
   {{CHROME}}
+  <aside class="notes">Et s'il réussit déjà seul, la vraie question devient : qu'est-ce que le contexte en plus apporte, et à quel prix ?</aside>
 </section>
 
-<!-- 5. Section protocole -->
+<!-- 6. Section protocole -->
 <section class="slide">
   {{RULER}}
   <div class="pad" style="top:320px"><div class="k reveal">Partie 1</div><h1 class="reveal" style="margin-top:30px">Le <em>banc</em></h1></div>
   {{CHROME}}
 </section>
 
-<!-- 6. La cible -->
+<!-- 7. La cible -->
 <section class="slide">
   <div class="pad">
     <div class="k reveal">La cible</div>
@@ -66,10 +83,10 @@
     <p class="muted reveal" style="margin-top:50px">Struts 2 · JPA / EclipseLink · Velocity · JSP · Lucene</p>
   </div>
   {{CHROME}}
-  <aside class="notes">28 tables dans createdb.vm, dont celles de Planet (rag_*).</aside>
+  <aside class="notes">Une vraie appli open source, ancienne, que tout le monde peut cloner. Commit figé 52e064a. 28 tables dans createdb.vm, dont celles de Planet.</aside>
 </section>
 
-<!-- 7. Les 20 questions -->
+<!-- 8. Les 20 questions -->
 <section class="slide">
   <div class="pad">
     <div class="k reveal">20 questions, réponses prouvées</div>
@@ -79,7 +96,7 @@
   {{CHROME}}
 </section>
 
-<!-- 8. Un piège : le commentaire qui ment -->
+<!-- 9. Un piège : le commentaire qui ment -->
 <section class="slide">
   <div class="pad">
     <div class="k reveal">Piège · question C01</div>
@@ -91,252 +108,324 @@ while (toker.hasMoreTokens() &amp;&amp; <span class="h">count &lt; 5</span>) {  
   {{CHROME}}
 </section>
 
-<!-- 9. Les mesures -->
+<!-- 10. La notation -->
+<section class="slide">
+  <div class="pad">
+    <div class="k reveal">La notation · bench/score.py</div>
+    <pre class="code reveal" style="margin-top:40px">def noter_reponse(question, reponse):
+    texte = reponse.lower()
+    points = sum(1 for c in question["criteres"]
+                 if any(m.lower() in texte for m in c))
+    return points / len(question["criteres"])</pre>
+    <p class="reveal" style="margin-top:40px">Des mots-clés obligatoires. <em>Puis une relecture humaine.</em></p>
+  </div>
+  {{CHROME}}
+  <aside class="notes">Le protocole est écrit comme une suite de tests. Chaque question a des critères ; chaque critère accepte plusieurs mots. C'est simple, donc ça se trompe parfois : on le verra, et c'est pour ça qu'un humain relit chaque note.</aside>
+</section>
+
+<!-- 11. Les mesures -->
 <section class="slide">
   <div class="pad">
     <div class="k reveal">Ce qu'on mesure</div>
     <ul class="steps reveal">
       <li data-n="01">Bonnes réponses <span class="muted">· notation automatique + relecture</span></li>
-      <li data-n="02">Tokens <span class="muted">· préparation comptée à part</span></li>
-      <li data-n="03">Temps <span class="muted">· 3 passages par question</span></li>
+      <li data-n="02">Tokens et coût <span class="muted">· préparation comptée à part</span></li>
+      <li data-n="03">Temps <span class="muted">· 3 passages, session neuve à chaque question</span></li>
     </ul>
   </div>
   {{CHROME}}
+  <aside class="notes">Même consigne pour tous : réponds et cite tes fichiers. Même modèle, même commit. Le coût de préparation d'un index ou d'un graphe est noté à part, sinon la comparaison est truquée.</aside>
 </section>
 
-<!-- 10. Section configurations -->
+<!-- 12. Section configurations -->
 <section class="slide">
   {{RULER}}
   <div class="pad" style="top:320px"><div class="k reveal">Partie 2</div><h1 class="reveal" style="margin-top:30px">Cinq <em>configurations</em></h1></div>
   {{CHROME}}
 </section>
 
-<!-- 11. Configuration 1 -->
+<!-- 13. Configuration 1 -->
 <section class="slide">
   <div class="pad">
-    <div class="k reveal">1 / 5</div>
+    <div class="k reveal">1 / 5 · la référence</div>
     <h2 class="reveal" style="margin:30px 0 40px">Agent seul</h2>
     <p class="reveal">Lire des fichiers. Chercher du texte. Rien d'autre.</p>
-    <p class="muted reveal">La référence : tout le reste doit faire mieux.</p>
+    <p class="muted reveal">Outils : Read · Grep · Glob. Aucune préparation.</p>
   </div>
   {{CHROME}}
+  <aside class="notes">La référence. Tout le reste doit faire mieux, ou moins cher. Ma prédiction écrite avant de mesurer : piégé par les commentaires faux et les dépendances commentées.</aside>
 </section>
 
-
-<!-- Démo Agent seul -->
+<!-- 14. Agent seul : résultats mesurés -->
 <section class="slide">
   <div class="pad">
-    <div class="k reveal">1 / 5 · démo · question S01</div>
-    <h3 class="reveal" style="margin:30px 0 50px">« Quel fournisseur JPA Roller utilise-t-il réellement ? »</h3>
-    <div class="cols reveal">
-      <div class="panel"><p class="muted" style="margin:0 0 16px">Réponse de l'agent (Agent seul)</p><div class="todo">à capturer</div></div>
-      <div class="panel"><p class="muted" style="margin:0 0 16px">Verdict · tokens · temps</p><div class="todo">à mesurer</div></div>
+    <div class="k reveal">1 / 5 · mesuré le 17/11/2026</div>
+    <div class="readouts reveal" style="margin-top:60px"><div><b>96-97 %</b><span>bonnes réponses</span></div><div><b>15 s</b><span>par question</span></div><div><b>0,047 $</b><span>par question</span></div></div>
+    <p class="reveal" style="margin-top:60px">20 questions × 3 passages. Modèle : Sonnet 5.5.</p>
+    <p class="muted reveal">~32 000 tokens lus par question (cache compris) · 0 erreur d'exécution.</p>
+  </div>
+  {{CHROME}}
+  <aside class="notes">Les vrais chiffres. 97, 97 et 96 % sur les trois passages. Environ 15 secondes et moins de 5 centimes par question. Ma prédiction était fausse : il a évité les deux pièges, S01 et C01, à chaque passage.</aside>
+</section>
+
+<!-- 15. Agent seul : par famille -->
+<section class="slide">
+  <div class="pad">
+    <div class="k reveal">1 / 5 · par famille et par passage</div>
+    <table class="m reveal" style="margin-top:40px">
+      <tr><th>Famille</th><th>Passage 1</th><th>Passage 2</th><th>Passage 3</th></tr>
+      <tr><td>Structure (7)</td><td class="n">100 %</td><td class="n">100 %</td><td class="n">95 %</td></tr>
+      <tr><td>Comportement (8)</td><td class="n">100 %</td><td class="n">100 %</td><td class="n">100 %</td></tr>
+      <tr><td>Données (5)</td><td class="n">90 %</td><td class="n">90 %</td><td class="n">90 %</td></tr>
+      <tr><td>Total (20)</td><td class="n">97 %</td><td class="n">97 %</td><td class="n">96 %</td></tr>
+      <tr><td>Temps pour 20 questions</td><td class="n">297 s</td><td class="n">306 s</td><td class="n">296 s</td></tr>
+    </table>
+  </div>
+  {{CHROME}}
+  <aside class="notes">Stable d'un passage à l'autre. Le seul point faible constant : les données. Une seule question en est la cause, D05, et elle rate de la même façon trois fois sur trois.</aside>
+</section>
+
+<!-- 16. Où l'agent seul échoue -->
+<section class="slide">
+  <div class="pad">
+    <div class="k reveal">Où il échoue · question D05 · 3 passages sur 3</div>
+    <h3 class="reveal" style="margin:30px 0 40px">« Où sont rangés les réglages modifiables à chaud ? »</h3>
+    <pre class="code reveal"><span class="c">Agent     :</span> « en base, dans la <span class="h">table des propriétés runtime</span> »
+<span class="c">Référence :</span> table <span class="h">roller_properties</span> (createdb.vm:256)
+            défauts dans runtimeConfigDefs.xml   <span class="c">← trouvé</span></pre>
+    <p class="reveal" style="margin-top:40px">Pas faux. <em>Pas assez précis</em> pour agir.</p>
+  </div>
+  {{CHROME}}
+  <aside class="notes">Il trouve le fichier des valeurs par défaut, mais ne nomme jamais la table. Il a lu le Java, pas le script SQL. Au passage 3, sur S04, il oublie aussi WeblogRequestMapper, mais il le dit lui-même : « je n'ai pas ouvert RequestMappingFilter ».</aside>
+</section>
+
+<!-- 17. Jeu difficile -->
+<section class="slide">
+  <div class="pad">
+    <div class="k reveal">Trop facile ? 10 questions plus dures · 17/11/2026</div>
+    <div class="readouts reveal" style="margin-top:60px"><div><b>100 %</b><span>passage 1</span></div><div><b>95 %</b><span>passage 2</span></div><div><b>100 %</b><span>passage 3</span></div></div>
+    <p class="reveal" style="margin-top:60px">Listes exhaustives, pile d'appels, configuration croisée avec le code.</p>
+    <p class="muted reveal">13 s et 0,040 $ par question · ~29 000 tokens lus.</p>
+  </div>
+  {{CHROME}}
+  <aside class="notes">J'ai donc écrit 10 questions plus dures. Même résultat. Et les 95 % du passage 2 ne sont pas une erreur de l'agent : c'est ma notation qui se trompe, slide suivante.</aside>
+</section>
+
+<!-- 18. Le banc s'est trompé, pas l'agent -->
+<section class="slide">
+  <div class="pad">
+    <div class="k reveal">Deux fois, le banc s'est trompé</div>
+    <div class="cols reveal" style="margin-top:40px">
+      <div class="panel"><h3>H03 · ma référence</h3><p>J'avais écrit : un plugin existe sans être activé.</p><p class="muted">L'agent, 3 fois sur 3 : les 4 sont actifs, ligne de continuation 528.</p></div>
+      <div class="panel"><h3>H10 · ma notation</h3><p>« Le démarrage échoue » : réponse juste.</p><p class="muted">Notée 50 % : aucun des mots-clés attendus (« ne démarre pas »…).</p></div>
     </div>
+    <p class="reveal" style="margin-top:40px"><em>L'agent avait raison. Moi non.</em></p>
   </div>
   {{CHROME}}
-  <aside class="notes">Démo en direct ; plan B : vidéo enregistrée de cette question.</aside>
+  <aside class="notes">H03 : j'avais lu la liste des plugins sans la ligne de continuation. L'agent a relevé la fausse prémisse aux trois passages ; j'ai corrigé la référence, commit 12c7bbc. H10 : la réponse est juste, la notation par mots-clés l'a ratée. D'où la relecture humaine.</aside>
 </section>
 
-<!-- 12. Configuration 2 -->
+<!-- 19. Configuration 2 : RAG -->
 <section class="slide">
   <div class="pad">
-    <div class="k reveal">2 / 5</div>
+    <div class="k reveal">2 / 5 · hypothèse</div>
     <h2 class="reveal" style="margin:30px 0 40px">+ <em>RAG</em></h2>
     <p class="reveal">Un index sémantique sur le code, la configuration et la doc.</p>
-    <p class="muted reveal">Hypothèse : trouve un concept sans connaître son nom ; perd le fil des appels.</p>
+    <p class="muted reveal">Je m'attends à : trouve un concept sans connaître son nom, perd le fil des appels. Parce qu'il découpe le code en morceaux.</p>
   </div>
   {{CHROME}}
 </section>
 
-
-<!-- Démo + RAG -->
+<!-- 20. RAG : protocole + question test -->
 <section class="slide">
   <div class="pad">
-    <div class="k reveal">2 / 5 · démo · question C04</div>
-    <h3 class="reveal" style="margin:30px 0 50px">« Un commentaire passe 2 validateurs sur 3 : quel statut ? »</h3>
-    <div class="cols reveal">
-      <div class="panel"><p class="muted" style="margin:0 0 16px">Réponse de l'agent (+ RAG)</p><div class="todo">à capturer</div></div>
-      <div class="panel"><p class="muted" style="margin:0 0 16px">Verdict · tokens · temps</p><div class="todo">à mesurer</div></div>
-    </div>
+    <div class="k reveal">2 / 5 · protocole · question C04</div>
+    <h3 class="reveal" style="margin:30px 0 40px">« Un commentaire passe 2 validateurs sur 3 : quel statut ? »</h3>
+    <ul class="steps reveal">
+      <li data-n="01">Réponse prouvée : SPAM <span class="muted">· la moyenne doit valoir 100 %</span></li>
+      <li data-n="02">Agent seul : 3/3 <span class="muted">· 12-13 s · ~26 000 tokens</span></li>
+      <li data-n="03">À battre : même note, moins de tokens <span class="muted">· index compté à part</span></li>
+    </ul>
   </div>
   {{CHROME}}
-  <aside class="notes">Démo en direct ; plan B : vidéo enregistrée de cette question.</aside>
+  <aside class="notes">Le protocole du RAG : découpage, embeddings, index, temps et tokens de préparation notés à part. La barre est haute : l'agent seul a déjà juste. Le RAG ne gagne que s'il coûte moins. Démo à venir ; plan B : vidéo enregistrée.</aside>
 </section>
 
-<!-- 13. Configuration 3 -->
+<!-- 21. Configuration 3 : graphe -->
 <section class="slide">
   <div class="pad">
-    <div class="k reveal">3 / 5</div>
+    <div class="k reveal">3 / 5 · hypothèse</div>
     <h2 class="reveal" style="margin:30px 0 40px">+ <em>graphe</em> du code</h2>
     <p class="reveal">Classes, appels, héritages, dépendances.</p>
-    <p class="muted reveal">Hypothèse : fort sur la structure ; aveugle sur le XML et les .properties.</p>
+    <p class="muted reveal">Je m'attends à : fort sur la structure, aveugle sur le XML et les .properties. Parce qu'il ne voit que le Java.</p>
   </div>
   {{CHROME}}
 </section>
 
-
-<!-- Démo + graphe -->
+<!-- 22. Graphe : protocole + question test -->
 <section class="slide">
   <div class="pad">
-    <div class="k reveal">3 / 5 · démo · question S04</div>
-    <h3 class="reveal" style="margin:30px 0 50px">« Comment /monblog/entry/mon-billet arrive-t-il à la page ? »</h3>
-    <div class="cols reveal">
-      <div class="panel"><p class="muted" style="margin:0 0 16px">Réponse de l'agent (+ graphe)</p><div class="todo">à capturer</div></div>
-      <div class="panel"><p class="muted" style="margin:0 0 16px">Verdict · tokens · temps</p><div class="todo">à mesurer</div></div>
-    </div>
+    <div class="k reveal">3 / 5 · protocole · question S04</div>
+    <h3 class="reveal" style="margin:30px 0 40px">« Comment /monblog/entry/mon-billet arrive-t-il à la page ? »</h3>
+    <ul class="steps reveal">
+      <li data-n="01">Réponse prouvée : 3 étapes <span class="muted">· filtre → mapper → PageServlet</span></li>
+      <li data-n="02">Agent seul : 100, 100, 67 % <span class="muted">· oublie le mapper au passage 3</span></li>
+      <li data-n="03">Le piège : le lien est dans web.xml <span class="muted">· pas dans le Java</span></li>
+    </ul>
   </div>
   {{CHROME}}
-  <aside class="notes">Démo en direct ; plan B : vidéo enregistrée de cette question.</aside>
+  <aside class="notes">La seule question de structure où l'agent seul a flanché. Un graphe d'appels devrait aider sur le chemin Java, mais le branchement passe par web.xml et roller.properties. C'est là que mon hypothèse sera vraie ou fausse. Démo à venir ; plan B : vidéo enregistrée.</aside>
 </section>
 
-<!-- 14. Configuration 4 -->
+<!-- 23. Configuration 4 : exécution -->
 <section class="slide">
   <div class="pad">
-    <div class="k reveal">4 / 5</div>
+    <div class="k reveal">4 / 5 · hypothèse</div>
     <h2 class="reveal" style="margin:30px 0 40px">+ <em>exécution</em></h2>
     <p class="reveal">L'appli tourne. L'agent déclenche des scénarios et observe HTTP, SQL, traces.</p>
-    <p class="muted reveal">Hypothèse : voit le vrai comportement ; coûte cher.</p>
+    <p class="muted reveal">Je m'attends à : voit le vrai comportement, coûte cher. Parce qu'il faut démarrer et observer l'appli.</p>
   </div>
   {{CHROME}}
-  <aside class="notes">Démo : poster un commentaire avec 4 liens, observer le statut SPAM.</aside>
 </section>
 
-
-<!-- Démo + exécution -->
+<!-- 24. Exécution : protocole + question test -->
 <section class="slide">
   <div class="pad">
-    <div class="k reveal">4 / 5 · démo · question C07</div>
-    <h3 class="reveal" style="margin:30px 0 50px">« Comment le compteur de visites est-il mis à jour ? »</h3>
-    <div class="cols reveal">
-      <div class="panel"><p class="muted" style="margin:0 0 16px">Réponse de l'agent (+ exécution)</p><div class="todo">à capturer</div></div>
-      <div class="panel"><p class="muted" style="margin:0 0 16px">Verdict · tokens · temps</p><div class="todo">à mesurer</div></div>
-    </div>
+    <div class="k reveal">4 / 5 · protocole · question C07</div>
+    <h3 class="reveal" style="margin:30px 0 40px">« Comment le compteur de visites est-il mis à jour ? »</h3>
+    <ul class="steps reveal">
+      <li data-n="01">Réponse prouvée : file en mémoire <span class="muted">· vidée par HitCountProcessingJob</span></li>
+      <li data-n="02">Agent seul : 3/3 <span class="muted">· 16-18 s · ~34 000 tokens</span></li>
+      <li data-n="03">Préparation : démarrer Roller <span class="muted">· Docker, temps noté à part</span></li>
+    </ul>
   </div>
   {{CHROME}}
-  <aside class="notes">Démo en direct ; plan B : vidéo enregistrée de cette question.</aside>
+  <aside class="notes">Un traitement différé : à l'exécution, on doit voir la requête SQL arriver plus tard. L'agent seul l'a déjà trouvé en lisant. L'exécution doit donc prouver qu'elle apporte autre chose que du coût. Démo à venir ; plan B : vidéo enregistrée.</aside>
 </section>
 
-<!-- 15. Configuration 5 -->
+<!-- 25. Configuration 5 : combinaison -->
 <section class="slide">
   <div class="pad">
-    <div class="k reveal">5 / 5</div>
+    <div class="k reveal">5 / 5 · hypothèse</div>
     <h2 class="reveal" style="margin:30px 0 40px">Tout <em>combiné</em></h2>
     <p class="reveal">L'agent choisit lui-même son outil.</p>
-    <p class="muted reveal">La vraie question : mieux que le meilleur seul ? À quel prix ?</p>
+    <p class="muted reveal">Je m'attends à : un peu mieux que le meilleur seul, pour bien plus de tokens.</p>
   </div>
   {{CHROME}}
 </section>
 
-
-<!-- Démo Combinaison -->
+<!-- 26. Combinaison : protocole + question test -->
 <section class="slide">
   <div class="pad">
-    <div class="k reveal">5 / 5 · démo · question C01</div>
-    <h3 class="reveal" style="margin:30px 0 50px">« Quelle ancre pour « Mon Premier Billet Sur Roller Et Java » ? »</h3>
-    <div class="cols reveal">
-      <div class="panel"><p class="muted" style="margin:0 0 16px">Réponse de l'agent (Combinaison)</p><div class="todo">à capturer</div></div>
-      <div class="panel"><p class="muted" style="margin:0 0 16px">Verdict · tokens · temps</p><div class="todo">à mesurer</div></div>
-    </div>
+    <div class="k reveal">5 / 5 · protocole · question C01</div>
+    <h3 class="reveal" style="margin:30px 0 40px">« Quelle ancre pour « Mon Premier Billet Sur Roller Et Java » ? »</h3>
+    <ul class="steps reveal">
+      <li data-n="01">Réponse prouvée : mon-premier-billet-sur-roller <span class="muted">· 5 mots</span></li>
+      <li data-n="02">Agent seul : 3/3 <span class="muted">· le commentaire faux ne l'a pas piégé</span></li>
+      <li data-n="03">Mesuré : quel outil il choisit <span class="muted">· et ce que ça coûte</span></li>
+    </ul>
   </div>
   {{CHROME}}
-  <aside class="notes">Démo en direct ; plan B : vidéo enregistrée de cette question.</aside>
+  <aside class="notes">Ici, on regarde surtout le comportement : avec trois outils, va-t-il en appeler trois pour une question qu'il sait déjà résoudre seul ? Démo à venir ; plan B : vidéo enregistrée.</aside>
 </section>
 
-<!-- 16. Section résultats -->
+<!-- 27. Section résultats -->
 <section class="slide">
   {{RULER}}
   <div class="pad" style="top:320px"><div class="k reveal">Partie 3</div><h1 class="reveal" style="margin-top:30px">Les <em>résultats</em></h1></div>
   {{CHROME}}
 </section>
 
-<!-- 17. Tableau des résultats (à mesurer) -->
+<!-- 28. Tableau des résultats -->
 <section class="slide">
   <div class="pad">
-    <div class="k reveal">Bonnes réponses par famille</div>
+    <div class="k reveal">Bonnes réponses par famille · moyenne des 3 passages</div>
     <table class="m reveal" style="margin-top:40px">
-      <tr><th>Configuration</th><th>Structure</th><th>Comportement</th><th>Données</th><th>Tokens</th></tr>
-      <tr><td>Agent seul</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="n">—</td></tr>
+      <tr><th>Configuration</th><th>Structure</th><th>Comportement</th><th>Données</th><th>Tokens / question</th></tr>
+      <tr><td>Agent seul</td><td class="n">98 %</td><td class="n">100 %</td><td class="n">90 %</td><td class="n">~32k</td></tr>
       <tr><td>+ RAG</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="n">—</td></tr>
       <tr><td>+ graphe</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="n">—</td></tr>
       <tr><td>+ exécution</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="n">—</td></tr>
       <tr><td>Combinaison</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="n">—</td></tr>
     </table>
-    <div class="todo reveal" style="margin-top:36px">à mesurer · publication avant fin janvier 2027</div>
+    <p class="muted reveal" style="margin-top:30px">Lignes 2 à 5 : mesures publiées dans le dépôt en janvier 2027.</p>
   </div>
   {{CHROME}}
+  <aside class="notes">Voilà la grille que vous verrez remplie le jour J. La première ligne est mesurée. Les quatre autres seront publiées dans le dépôt en janvier, avec les réponses brutes.</aside>
 </section>
 
-
-<!-- Prédictions contre mesures -->
+<!-- 29. Prédictions contre mesures -->
 <section class="slide">
   <div class="pad">
-    <div class="k reveal">Nos prédictions, confrontées aux mesures</div>
+    <div class="k reveal">Mes prédictions, confrontées aux mesures</div>
     <table class="m reveal" style="margin-top:40px">
       <tr><th>Prédiction (posée avant de mesurer)</th><th>Verdict</th></tr>
-      <tr><td>Le RAG perd le fil des appels</td><td class="n">à mesurer</td></tr>
-      <tr><td>Le graphe est aveugle au XML et aux .properties</td><td class="n">à mesurer</td></tr>
-      <tr><td>L'exécution voit le vrai comportement, mais coûte cher</td><td class="n">à mesurer</td></tr>
-      <tr><td>Aucune configuration seule ne gagne partout</td><td class="n">à mesurer</td></tr>
+      <tr><td>L'agent seul tombe dans les pièges S01 et C01</td><td class="n">fausse · 6/6 justes</td></tr>
+      <tr><td>Le RAG perd le fil des appels</td><td class="n">hypothèse</td></tr>
+      <tr><td>Le graphe est aveugle au XML et aux .properties</td><td class="n">hypothèse</td></tr>
+      <tr><td>L'exécution voit le vrai comportement, mais coûte cher</td><td class="n">hypothèse</td></tr>
+      <tr><td>Aucune configuration seule ne gagne partout</td><td class="n">hypothèse</td></tr>
     </table>
-    <p class="muted reveal" style="margin-top:30px">Si une prédiction est fausse, on le dit ici.</p>
+    <p class="muted reveal" style="margin-top:30px">Une prédiction est déjà fausse. Je la laisse affichée.</p>
   </div>
   {{CHROME}}
+  <aside class="notes">J'ai écrit ces prédictions avant de mesurer. La première est déjà tombée. Les autres seront tranchées par les mesures, et je montrerai celles qui tombent.</aside>
 </section>
 
-<!-- 18. Où chacun échoue (à mesurer) -->
+<!-- 30. Le coût -->
 <section class="slide">
-  <div class="pad" style="top:240px">
-    <div class="k reveal">Où chaque option échoue</div>
-    <h2 class="reveal" style="margin-top:30px">Les erreurs, <em>montrées telles quelles</em></h2>
-    <div class="todo reveal" style="margin-top:50px">à mesurer · 3 exemples d'erreurs réelles</div>
+  <div class="pad">
+    <div class="k reveal">Le coût · préparation comptée à part</div>
+    <table class="m reveal" style="margin-top:40px">
+      <tr><th>Configuration</th><th>Préparation</th><th>Par question</th></tr>
+      <tr><td>Agent seul</td><td>aucune</td><td class="n">0,047 $ · 15 s</td></tr>
+      <tr><td>+ RAG</td><td>découpage, embeddings, index</td><td class="n">—</td></tr>
+      <tr><td>+ graphe</td><td>analyse statique, graphe</td><td class="n">—</td></tr>
+      <tr><td>+ exécution</td><td>démarrer Roller, observer</td><td class="n">—</td></tr>
+    </table>
+    <p class="reveal" style="margin-top:40px">La barre à battre : <em>moins de 5 centimes</em>, sans préparation.</p>
   </div>
   {{CHROME}}
+  <aside class="notes">Sur Roller, l'agent seul coûte moins de 5 centimes par question et ne demande aucune préparation. Toute autre option doit justifier son index, son graphe ou son Docker par un gain mesurable.</aside>
 </section>
 
-<!-- 19. Le coût -->
-<section class="slide">
-  <div class="pad" style="top:240px">
-    <div class="k reveal">Le coût</div>
-    <h2 class="reveal" style="margin-top:30px">Combien coûte <em>la préparation</em> du contexte ?</h2>
-    <p class="muted reveal" style="margin-top:40px">Indexer, construire le graphe, démarrer l'appli : compté à part.</p>
-    <div class="todo reveal" style="margin-top:30px">à mesurer</div>
-  </div>
-  {{CHROME}}
-</section>
-
-<!-- 20. Section : à emporter -->
+<!-- 31. Section : à emporter -->
 <section class="slide">
   {{RULER}}
   <div class="pad" style="top:320px"><div class="k reveal">Partie 4</div><h1 class="reveal" style="margin-top:30px">Quel contexte, <em>quand ?</em></h1></div>
   {{CHROME}}
 </section>
 
-<!-- 21. Arbre de décision (provisoire) -->
+<!-- 32. Arbre de décision (provisoire) -->
 <section class="slide">
   <div class="pad">
     <div class="k reveal">Arbre de décision · provisoire</div>
     <div class="cols reveal" style="margin-top:50px;grid-template-columns:1fr 1fr 1fr;gap:40px">
-      <div class="panel"><h3>« De quoi c'est fait ? »</h3><p class="muted">structure</p><div class="todo">à mesurer</div></div>
-      <div class="panel"><h3>« Que se passe-t-il ? »</h3><p class="muted">comportement</p><div class="todo">à mesurer</div></div>
-      <div class="panel"><h3>« Qu'est-ce qui est stocké ? »</h3><p class="muted">données</p><div class="todo">à mesurer</div></div>
+      <div class="panel"><h3>« De quoi c'est fait ? »</h3><p class="muted">structure</p><p>Agent seul : 98 %.<br>Graphe ? <span class="muted">hypothèse</span></p></div>
+      <div class="panel"><h3>« Que se passe-t-il ? »</h3><p class="muted">comportement</p><p>Agent seul : 100 %.<br>Exécution ? <span class="muted">hypothèse</span></p></div>
+      <div class="panel"><h3>« Qu'est-ce qui est stocké ? »</h3><p class="muted">données</p><p>Agent seul : 90 %.<br><em>Le point faible mesuré.</em></p></div>
     </div>
+    <p class="reveal" style="margin-top:40px">Première branche : <em>mesurez l'agent seul d'abord.</em></p>
   </div>
   {{CHROME}}
+  <aside class="notes">L'arbre est provisoire. Une seule branche est déjà sûre : avant d'acheter un RAG ou un graphe, mesurez l'agent seul sur vos propres questions. Ici, il fait 96 à 97 % sur Roller.</aside>
 </section>
 
-<!-- 22. Refaire chez soi -->
+<!-- 33. Refaire chez soi -->
 <section class="slide">
   <div class="pad">
     <div class="k reveal">Chez vous, demain</div>
     <pre class="code reveal" style="margin-top:40px">git clone https://github.com/mekkiamiri/legacy-context-bench
 python3 bench/score.py --check
-python3 bench/score.py results/&lt;config&gt;/answers.json</pre>
+python3 bench/run_agent.py --roller &lt;clone&gt; --passes 3
+python3 bench/score.py results/1-agent-seul/answers.json</pre>
     <p class="reveal" style="margin-top:40px">Remplacez Roller par votre code, et les 20 questions par les vôtres.</p>
   </div>
   {{CHROME}}
+  <aside class="notes">Tout ce que vous avez vu se relance en quatre commandes. Python seul, sans dépendance. Le plus long, c'est d'écrire vos questions avec leurs preuves.</aside>
 </section>
 
-<!-- 23. Fin -->
+<!-- 34. Fin -->
 <section class="slide">
   {{RULER}}
   <div class="pad" style="top:300px">
@@ -345,4 +434,5 @@ python3 bench/score.py results/&lt;config&gt;/answers.json</pre>
     <p class="muted reveal">Questions ?</p>
   </div>
   {{CHROME}}
+  <aside class="notes">Même moi, je me suis trompé deux fois dans mon propre banc. Mesurez avant de croire, y compris vos propres certitudes. Merci.</aside>
 </section>
