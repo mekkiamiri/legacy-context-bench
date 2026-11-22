@@ -17,8 +17,8 @@ Ce dépôt mesure la réponse au lieu de la deviner. Même appli, mêmes questio
 | # | Configuration | Ce que l'agent reçoit en plus du code |
 |---|---|---|
 | 1 | [Agent seul](configurations/1-agent-seul/) | rien : lecture de fichiers et recherche texte |
-| 2 | [+ RAG](configurations/2-rag/) | un index de recherche sémantique sur le code et la doc |
-| 3 | [+ graphe du code](configurations/3-graphe/) | un graphe de connaissance (classes, appels, dépendances) |
+| 2 | [+ RAG](configurations/2-rag/) | un index de recherche (BM25, lexical) sur le code, la configuration et la doc |
+| 3 | [+ graphe du code](configurations/3-graphe/) | un graphe du code (classes, appels, héritage, routes, entité -> table, configuration -> code) |
 | 4 | [+ exécution](configurations/4-execution/) | l'appli qui tourne, observée (requêtes HTTP, SQL, traces) |
 | 5 | [Combinaison](configurations/5-combinaison/) | 2 + 3 + 4 |
 
@@ -31,7 +31,8 @@ Ce dépôt mesure la réponse au lieu de la deviner. Même appli, mêmes questio
 | Page de démo | fait (résultats affichés quand ils existent) |
 | Configuration 1 « agent seul » (Sonnet 5.5, 3 passages) | **mesurée le 17/11/2026 : 96 à 97 % de bonnes réponses, 0,047 $ et 15 s par question** ([résultats](results/1-agent-seul/)) |
 | Configuration 1 sur le jeu difficile (10 questions, 3 passages) | **mesurée le 17/11/2026 : 95 à 100 %, 0,040 $ et 13 s par question** ; l'agent a relevé une erreur de l'auteur des questions (H03, voir PROTOCOLE.md) |
-| Configurations 2 à 5 | en cours, publication prévue avant fin janvier 2027 |
+| Outils des configurations 2 et 3 (index BM25, graphe du code), branchés dans le lanceur | **faits le 22/11/2026**, démonstration réelle sur Roller : [RAG](configurations/2-rag/DEMO.md), [graphe](configurations/3-graphe/DEMO.md) |
+| Mesure des configurations 2 à 5 | en cours, publication prévue avant fin janvier 2027 |
 
 Aucun chiffre n'est publié avant d'avoir été mesuré. Si les mesures contredisent l'intuition de départ, ce dépôt le dira.
 
@@ -46,6 +47,16 @@ python3 bench/score.py results/<config>/answers.json   # note une configuration
 python3 bench/build_site.py                    # régénère docs/data.js
 ```
 
+Configurations 2 et 3, sur n'importe quel projet Java (ici Roller cloné dans `/tmp/roller`) :
+
+```bash
+python3 configurations/2-rag/rag_index.py /tmp/roller .contexte/rag-index.json.gz
+python3 configurations/2-rag/rag_search.py "runtime properties default value" --k 8
+python3 configurations/3-graphe/graph_build.py /tmp/roller .contexte/graphe.json
+python3 configurations/3-graphe/graph_query.py route /monblog/
+python3 bench/run_agent.py --roller /tmp/roller --config 2-rag --passes 3 --model claude-sonnet-5-5   # ou 3-graphe
+```
+
 Pour vérifier que chaque preuve pointe bien vers une ligne de Roller :
 
 ```bash
@@ -58,7 +69,7 @@ Le protocole complet est dans [PROTOCOLE.md](PROTOCOLE.md).
 
 ## Neutralité
 
-L'auteur n'a écrit aucun des outils comparés. Les outils sont choisis parce qu'ils sont open source et utilisables par tous, pas pour en promouvoir un.
+Les configurations 2 et 3 utilisent des outils minimaux écrits pour le banc (index BM25 et graphe par analyse syntaxique, Python sans dépendance, [limites listées](configurations/3-graphe/README.md#limites-honnêtement)) : ils servent de base reproductible et ne promeuvent aucun produit. Les outils open source du marché (RAG à embeddings, graphes de code) pourront être mesurés ensuite comme variantes, avec le même protocole.
 
 ## Licence
 

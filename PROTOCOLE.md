@@ -39,3 +39,8 @@ Les notes de toutes les configurations sont calculées avec ce fichier corrigé.
 ## Jeu difficile (17/11/2026)
 Après une première mesure à 96-97 % pour l'agent seul, 10 questions plus difficiles ont été ajoutées (`questions/questions-difficiles.json`) : listes exhaustives, croisement configuration et code, pile d'appels à remonter.
 **Erreur de l'auteur des questions, relevée par l'agent :** pour H03, la référence disait qu'un plugin existait sans être activé ; l'agent a répondu, aux 3 passages, que les 4 plugins sont actifs (ligne de continuation 528 de `roller.properties`). L'agent avait raison. La référence est corrigée et la question est gardée comme test de fausse prémisse.
+
+## Configurations 2 et 3 (22/11/2026)
+- **Outils :** index BM25 lexical (`configurations/2-rag/`) et graphe du code (`configurations/3-graphe/`), écrits pour le banc, Python sans dépendance, génériques pour un projet Java (Maven/Gradle, JSP, XML, SQL). Réglages et limites dans leurs README.
+- **Ce que l'agent reçoit en plus :** l'outil Bash restreint à une seule commande (`Bash(python3 <outil>:*)`), et une phrase ajoutée au prompt système qui présente l'outil. La consigne commune et les questions sont inchangées.
+- **Préparation :** index ou graphe construit une fois par commit, avant la première question, sans token. Temps et taille notés dans `_meta.preparation` (sur Roller : 2,3 s et 1,5 Mo pour l'index, 1,0 s et 7,2 Mo pour le graphe).
