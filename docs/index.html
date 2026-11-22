@@ -116,7 +116,7 @@
     res.innerHTML = `<table><thead><tr><th>Configuration</th><th>Total</th><th>Structure</th><th>Comportement</th><th>Données</th><th>Tokens</th><th>Temps</th></tr></thead><tbody>${
       noms.map(n => { const r = R[n], m = r.meta || {};
         return `<tr><td>${n}</td><td class="score"><b>${pct(r.total)}</b></td><td class="score">${pct(r.par_famille.structure)}</td><td class="score">${pct(r.par_famille.comportement)}</td><td class="score">${pct(r.par_famille.donnees)}</td><td class="score">${m.tokens ?? "–"}</td><td class="score">${m.duree ?? "–"}</td></tr>`;
-      }).join("")}</tbody></table>`;
+      }).join("")}</tbody></table><p class="note">Agent seul : passage 1 sur 3, mesuré le 17/11/2026 avec Sonnet 5.5 (détail des 3 passages, tokens et temps dans <a href="https://github.com/mekkiamiri/legacy-context-bench/tree/main/results">results/</a>). RAG, graphe, exécution et combinaison : mesures publiées en janvier 2027.</p>`;
   }
 </script>
 </body>

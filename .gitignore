@@ -1,3 +1,5 @@
 __pycache__/
 *.pyc
 .DS_Store
+# Cache Chrome créé par erreur par un outil local (chemin Windows non résolu)
+/${local_app_data}*
